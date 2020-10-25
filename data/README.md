@@ -1,0 +1,1 @@
+[TDLib](https://github.com/tdlib/td) Api Scheme File : https://github.com/tdlib/td/blob/a55fd22716dd14159c5f94862c80a0196804dd04/td/generate/scheme/td_api.tl
