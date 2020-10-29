@@ -21,7 +21,7 @@ class TelegramMessagesListController extends MvcController {
     return (channel == null) ? "" : channel.title;
   }
 
-  TelegramMessagesListController({@required this.channelId}) {}
+  TelegramMessagesListController({@required this.channelId});
 
   @override
   void onInit() {

@@ -1,9 +1,7 @@
 import 'package:id_mvc_app_framework/framework.dart';
 import 'package:id_mvc_app_framework/model.dart';
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 import 'package:telegram_service/td_api.dart';
 import 'package:telegram_service/telegram_service.dart';
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 import 'package:telegram_service_example/app/model/channel_info.dart';
 import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
