@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 import 'package:telegram_service/td_api.dart';
 import 'package:telegram_service/telegram_service.dart';
 import 'package:telegram_service_example/app/screens/login_screen/login_screen.controller.dart';
