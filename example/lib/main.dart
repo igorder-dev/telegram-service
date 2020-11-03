@@ -16,6 +16,7 @@ import 'utils/telegram/handlers/telegram_login_handler.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   TelegramService.start(
     eventHandlers: [
       Get.put<TdlibLoginHandler>(TdlibLoginHandler()),

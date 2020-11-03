@@ -14,23 +14,61 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
 import '../tdclient/tdclient.dart';
 
+/// Describes Callback function format for telegram API library event.
+/// Used in  [TelegramService.sendCommand] and [TelegramEventHandler.sendCommand]
 typedef void TelegramEventCallback(TdObject event, [String requestID]);
+
+/// Describes Callback function format if telegram servis returns error
 typedef void TelegramErrorCallback(error);
+
+/// Describes Callback function when Libabry returns that user was logout from the plugin
+/// This can happen if user removed authorization in the Telegram Client.
+/// Current version of pluging will require Application restartu to re-login user
 typedef void TelegramServiceLogoutCallback();
 
+///Generates random unique key. Used to link callback function to recieved event object from telegram
 String _randomID() => UniqueKey().toString();
+
+///Coded int encryption key used by library
 const String ENCRYPTION_KEY = "mostrandomencryption";
 
+/// Provides stream based wrapper for handling tdlib event from telegram plugin
+///
+/// Use [start] to initiate the instance of servise. It can be only one instance of service for the App
+///
+/// ##In order to start handling Telegram event you can use
+///  1. TelegramEventHandler.start(onEvent: (TdObject event, [String requestID]) {print(event);}) - handling all events in the recieving stream
+///  2. TelegramEventHandler.start(eventHandlers: [CustomTdlibEventHandler()]) - CustomTdlibEventHandler must  extend [TelegramEventHandler].
+///      Each handler is manager by seperate stream.
+///  3.  TelegramService.instance.listenToUpdates((event) {print(event);}); - handingly all events in the seperate stream provided by [ModelStateProvider]
+///
+/// ##In order to send command to Telegram library you can use
+///  1. [TelegramService.sendCommand]
+///  2. [CustomTdlibEventHandler.sendCommand] -  provides implementation of callback handling withing Handler class
+///
 class TelegramService with ModelStateProvider, GetxServiceMixin {
+  /// Defines if log method should print or omit messages
   static bool _logEnabled = true;
 
+  /// Defines standard log function withing [TelegramService] class.
+  ///
+  /// Prints "[TELE-SERVICE] $value"
   static void log(String value) {
     if (Get.isLogEnable && _logEnabled) {
       dev.log(value, name: 'TELE-SERVICE');
     }
   }
 
-  ///Initializes and starts telegram service instance in the dependency injection system
+  /// Initializes and starts telegram service instance in the dependency injection system of GetX
+  ///
+  /// - [parameters] - instance of [TdlibParameters] with configuration of Telegram Library.
+  /// - [eventHandlers] - list of custom [TelegramEventHandler] for processing sepcific types of TdLib objects.
+  /// - [verbosityLevel] - Default value 1. Passes agrument to the TdLib function [SetLogVerbosityLevel] during start of the library
+  /// - [onError] - Global callback to handle run-time and TdLib returned errors
+  /// - [onEvent] - Global callback to handle all TdLibm events
+  /// - [onLogOut] - Global callback to handle logout of the user driven from external
+  /// - [logEnabled] - true if library should send log message on events to the terminal
+  ///
   static Future<void> start({
     @required TdlibParameters parameters,
     @required List<TelegramEventHandler> eventHandlers,
@@ -42,6 +80,8 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   }) async {
     _logEnabled = logEnabled;
 
+    // Register instance of Telegram Service in GetX dependency injection system
+    // Instance exists in App memory up until closure
     await Get.putAsync(() async {
       final _instance = TelegramService._(
         parameters: parameters,
@@ -57,6 +97,9 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }, permanent: true);
   }
 
+  /// Does attempt to restart telegram service
+  /// !!! At the moment will cause Critical Exception as TdLib is crashing during restart
+  // TODO: Fix crash of the tdlib plugin during restart
   static Future<void> restart({
     TdlibParameters parameters,
     List<TelegramEventHandler> eventHandlers,
@@ -82,7 +125,10 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     );
   }
 
-  /// Gets current active instance of telegram service
+  /// Returns current instance of [TelegramService].
+  ///
+  /// [TelegramService.start] must be called first.
+  /// Throws [TelegramServiceException] if telegram service was not started.
   static TelegramService get instance {
     try {
       TelegramService _instance = Get.find();
@@ -93,6 +139,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
   }
 
+  /// Passes [error] object to [errorCallback]. If [errorCallback] is Null then throws [error] as exception
   void errorCallback(error, TelegramErrorCallback errorCallback) {
     if (errorCallback != null)
       errorCallback(error);
@@ -100,6 +147,9 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
       throw error;
   }
 
+  ///Checks if [event] is instance of [TdError].
+  ///
+  ///If yes, calls [this.onError] call back to handle the error. [onError] should be assigned on the [TelegramService.start]
   void tdLibErrorCheck(TdObject event) {
     if (event.getConstructor() != TdError.CONSTRUCTOR) return;
     final error = event as TdError;
@@ -110,14 +160,21 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
   }
 
-  /// Variables definition
+  // * Variables definition
+
+  /// internal TdLIb client ID
   int _client;
 
+  /// Stream used to handle events from TdLib Library
   StreamController<TdObject> _eventController;
+
+  /// Subscribes and recieves TdLib events from plugin
   StreamSubscription<TdObject> _eventReceiver;
 
   Directory appDocDir;
   Directory appExtDir;
+
+  ///Map to store registered event callbacks done via sendCommand function
   final Map<String, TelegramEventCallback> _eventCallbacks =
       Map<String, TelegramEventCallback>();
 
@@ -131,6 +188,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   final Map<String, StreamController<TdObject>> _eventHandlersSControllers =
       Map();
 
+  /// Internal constructor for [TelegramService]. Check [TelegramService.start] for more information
   TelegramService._({
     @required this.parameters,
     @required this.eventHandlers,
@@ -139,16 +197,21 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     this.onEvent,
     this.onLogOut,
   }) : assert(eventHandlers != null) {
+    // initializes event handling stream. All events are handled in [_onEvent] function
     _eventController = StreamController();
-
     _eventController.stream.listen(_onEvent);
   }
 
+  /// Initializes TelegramEventHandler  processing system
+  /// 1. Registers set of internal handlers needed for initialization and authorization of telegram client
+  /// 2. Creates separate [StreamController] for each [TelegramEventHandler.eventsToHandle] and then subscribes TelegramEventHandler to the stream
   void initHandlersMap() {
+    //Define directory path used by TdLIb pluging for processing and storing internal cash data.
     parameters.filesDirectory = appExtDir.path + '/tdlib';
     parameters.databaseDirectory = appDocDir.path;
-    eventHandlers.add(TdlibParametersHandler(parameters, onError));
 
+    // Registers internal event handlers. Check each class seperatelly
+    eventHandlers.add(TdlibParametersHandler(parameters, onError));
     eventHandlers.add(EncryptionKeyHandler(ENCRYPTION_KEY));
     eventHandlers.add(AuthorizationClosedHandler(onLogOut));
 

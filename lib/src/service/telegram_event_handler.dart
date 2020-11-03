@@ -1,4 +1,3 @@
-import 'package:id_mvc_app_framework/framework.dart';
 import 'package:id_mvc_app_framework/model.dart';
 import 'package:telegram_service/src/service/telegram_service.dart';
 import 'package:telegram_service/src/tdapi/tdapi.dart';

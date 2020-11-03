@@ -66,14 +66,4 @@ class MainScreen extends MvcScreen<MainScreenController> {
       },
     );
   }
-
-  Widget get _getChannelsButton => Container(
-        child: Align(
-          alignment: Alignment.center,
-          child: RaisedButton(
-            child: Text('Show All Messages'),
-            onPressed: c.onGetChatsPressed,
-          ),
-        ),
-      );
 }
