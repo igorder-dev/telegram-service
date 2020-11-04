@@ -2,6 +2,12 @@ import 'package:telegram_service/td_api.dart';
 import '../telegram_event_handler.dart';
 import '../telegram_service.dart';
 
+///Telegram event handler that sends [CheckDatabaseEncryptionKey]
+///or  [SetDatabaseEncryptionKey] command required by TdLib plugin for initialization
+///
+///Called when [UpdateAuthorizationState] event recieved
+///
+///Used internally by [TelegramService]
 class EncryptionKeyHandler extends TelegramEventHandler {
   final String encryptionKey;
   EncryptionKeyHandler(this.encryptionKey);

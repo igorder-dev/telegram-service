@@ -2,6 +2,10 @@ import 'package:telegram_service/td_api.dart';
 import '../telegram_event_handler.dart';
 import '../telegram_service.dart';
 
+///Telegram event handler that sends [TdlibParameters] object required by TdLib plugin for initialization
+///Called when [UpdateAuthorizationState] event recieved
+///
+///Used internally by [TelegramService]
 class TdlibParametersHandler extends TelegramEventHandler {
   final TdlibParameters parameters;
   final TelegramErrorCallback onError;
