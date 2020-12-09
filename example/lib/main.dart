@@ -12,6 +12,7 @@ import 'package:telegram_service_example/config/exceptions_config.dart';
 import 'package:telegram_service_example/routes/routes.dart';
 
 import 'utils/telegram/handlers/telegram_chats_handler.dart';
+import 'utils/telegram/handlers/telegram_file_download_handler.dart';
 import 'utils/telegram/handlers/telegram_login_handler.dart';
 
 void main() {
@@ -21,6 +22,7 @@ void main() {
     eventHandlers: [
       Get.put<TdlibLoginHandler>(TdlibLoginHandler()),
       Get.put<TdlibChatsHandler>(TdlibChatsHandler()),
+      Get.put<TdlibFileDownloadHandler>(TdlibFileDownloadHandler()),
     ],
     parameters: TdlibParameters(
       useTestDc: false,

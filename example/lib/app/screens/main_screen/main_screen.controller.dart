@@ -39,11 +39,13 @@ class MainScreenController extends MvcController {
 
   @override
   void onInit() {
+    super.onInit();
     loadChats();
   }
 
   @override
   void onReady() {
+    super.onReady();
     debounce(
       channelsStore,
       (_) {

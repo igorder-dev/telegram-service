@@ -180,6 +180,8 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   final Map<String, TelegramEventCallback> _eventCallbacks =
       Map<String, TelegramEventCallback>();
 
+  StreamController<TdObject> _eventCallbacksSController;
+
   final TdlibParameters parameters;
   final int verbosityLevel;
   final TelegramErrorCallback onError;
@@ -202,6 +204,9 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     // initializes event handling stream. All events are handled in [_onEvent] function
     _eventController = StreamController();
     _eventController.stream.listen(_onEvent);
+
+    _eventCallbacksSController = StreamController();
+    _eventCallbacksSController.stream.listen(_onEventCallback);
   }
 
   /// Initializes TelegramEventHandler  processing system
@@ -316,9 +321,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
 
     if (_eventCallbacks.containsKey(requestID)) {
       //If callback registered call it and remove from callbacks map.
-      // TODO: implement callback calling in seperate stream to not block main event handling stream.
-      _eventCallbacks[requestID](event, requestID);
-      _eventCallbacks[requestID] = null;
+      _eventCallbacksSController.add(event);
     } else {
       //if not, searches for respective eventType handling stream and routes event to registered TelegramEventHandlers
       final eventType = event.getConstructor();
@@ -326,6 +329,13 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
         _eventHandlersSControllers[eventType].add(event);
       }
     }
+  }
+
+//If callback registered call it and remove from callbacks map.
+  void _onEventCallback(TdObject event) {
+    final requestID = event.extra?.toString(); //gets callback ID from the event
+    _eventCallbacks[requestID](event, requestID);
+    _eventCallbacks[requestID] = null;
   }
 
   ///Calls TdLib plugin to destroy client

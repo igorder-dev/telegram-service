@@ -39,8 +39,8 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     messages.messages.forEach((message) {
       Get.log(
           "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()}]");
-      messagesStore.add(
-          message.id, TelegramChannelMessageInfo.fromMessage(message));
+      messagesStore[message.id] =
+          TelegramChannelMessageInfo.fromMessage(message);
     });
   }
 
@@ -48,7 +48,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     if (chat.type.getConstructor() != ChatTypeSupergroup.CONSTRUCTOR) return;
     final channelsStore = TelegramChannelInfoStore();
     getChatMessages(chat.id);
-    channelsStore.add(chat.id, TelegramChannelInfo.fromChat(chat));
+    channelsStore[chat.id] = TelegramChannelInfo.fromChat(chat);
   }
 
   void _handleChatsEvent(Chats chats) {

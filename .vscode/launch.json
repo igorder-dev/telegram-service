@@ -10,6 +10,12 @@
             "type": "dart"
         },
         {
+            "name": "telegram_service_profile",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
             "name": "example",
             "cwd": "example",
             "request": "launch",
