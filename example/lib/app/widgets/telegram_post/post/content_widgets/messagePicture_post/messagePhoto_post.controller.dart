@@ -12,4 +12,8 @@ class MessagePhotoPostContentController extends MvcController {
       : assert(messsageInfo.content is tdapi.MessagePhoto);
 
   String get postText => messageContent.caption.text;
+
+  double get aspectRatio =>
+      messageContent.photo.minithumbnail.width /
+      messageContent.photo.minithumbnail.height;
 }

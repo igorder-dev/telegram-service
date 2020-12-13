@@ -10,9 +10,9 @@ class TelegramMessagesListController extends MvcController {
   final int channelId;
   final messagesStore = TelegramChannelMessageInfoStore();
   final channelsStore = TelegramChannelInfoStore();
+  List<TelegramChannelMessageInfo> _messages = List();
 
-  List<TelegramChannelMessageInfo> get messages =>
-      messagesStore.getMessagesByChannelId(channelId: channelId);
+  List<TelegramChannelMessageInfo> get messages => _messages;
   int get messagesCount => messages?.length ?? 0;
 
   TelegramMessagesListController({@required this.channelId});
@@ -20,6 +20,7 @@ class TelegramMessagesListController extends MvcController {
   @override
   void onInit() {
     super.onInit();
+    _messages = messagesStore.getMessagesByChannelId(channelId: channelId);
     if (channelId != null) {
       TdlibChatsHandler.instance.getChatMessages(channelId);
     }
@@ -27,6 +28,7 @@ class TelegramMessagesListController extends MvcController {
     debounce(
       messagesStore,
       (_) {
+        _messages = messagesStore.getMessagesByChannelId(channelId: channelId);
         update();
       },
       time: 1.seconds,

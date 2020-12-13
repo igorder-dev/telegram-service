@@ -24,8 +24,11 @@ class MessagePhotoPostContent
       );
 
   // TODO : Implement Post media content handling
-  Widget get _postMediaContent => Placeholder(
-        color: Colors.yellow,
+  Widget get _postMediaContent => AspectRatio(
+        aspectRatio: c.aspectRatio,
+        child: Placeholder(
+          color: Colors.yellow,
+        ),
       );
 
   @override
