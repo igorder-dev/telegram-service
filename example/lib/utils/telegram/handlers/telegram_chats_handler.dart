@@ -6,6 +6,7 @@ import 'package:telegram_service_example/app/model/channel_info.dart';
 import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/model/message_info_store.dart';
+import 'package:telegram_service_example/utils/telegram/posts_builders/post_content_builder_service.dart';
 
 class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
   static TdlibChatsHandler get instance => Get.find();
@@ -37,10 +38,16 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
   void _handleMessagesEvent(Messages messages) {
     final messagesStore = TelegramChannelMessageInfoStore();
     messages.messages.forEach((message) {
-      Get.log(
-          "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()}]");
-      messagesStore[message.id] =
-          TelegramChannelMessageInfo.fromMessage(message);
+      final messageInfo = TelegramChannelMessageInfo.fromMessage(message);
+      if (TelegramPostContentBuilderService.hasBuilder(messageInfo)) {
+        messagesStore[message.id] =
+            TelegramChannelMessageInfo.fromMessage(message);
+        Get.log(
+            "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - added]");
+      } else {
+        Get.log(
+            "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - excluded]");
+      }
     });
   }
 

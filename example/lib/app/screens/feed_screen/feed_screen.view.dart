@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:id_mvc_app_framework/framework.dart';
-import 'package:id_mvc_app_framework/helpers.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post/post.view.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post_frame.dart';
-import 'package:telegram_service_example/app/widgets/telegram_post/post_header.dart';
 
 import 'feed_screen.controller.dart';
 
@@ -32,7 +30,7 @@ class FeedScreen extends MvcScreen<FeedScreenController> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 TelegramPost(
-                  postText: postText,
+                  postContent: Text('hello World!!!'),
                   postTime: '07:42 AM',
                   postTitle:
                       'The most awesome channel title The most awesome channel title...',

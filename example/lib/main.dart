@@ -8,15 +8,28 @@ import 'dart:async';
 
 import 'package:telegram_service/td_api.dart' show TdObject, TdlibParameters;
 import 'package:telegram_service/telegram_service.dart';
+import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/messagePicture_post/messagePhoto_post.view.dart';
 import 'package:telegram_service_example/config/exceptions_config.dart';
 import 'package:telegram_service_example/routes/routes.dart';
 
+import 'app/widgets/telegram_post/post/content_widgets/messageText_post/messageText_post.view.dart';
+
+import 'app/widgets/telegram_post/post/content_widgets/unknown_post_type/unknown_post_type.view.dart';
 import 'utils/telegram/handlers/telegram_chats_handler.dart';
 import 'utils/telegram/handlers/telegram_file_download_handler.dart';
 import 'utils/telegram/handlers/telegram_login_handler.dart';
+import 'utils/telegram/posts_builders/post_content_builder_service.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
+  TelegramPostContentBuilderService.init(
+    [
+      MessageTextPostContent.builder,
+      MessagePhotoPostContent.builder,
+    ],
+    defaultBuilder: UnknownPostContent.builder,
+  );
 
   TelegramService.start(
     eventHandlers: [

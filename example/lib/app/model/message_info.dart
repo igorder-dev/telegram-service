@@ -9,16 +9,20 @@ class TelegramChannelMessageInfo {
   final int channelId;
   final MessageContent content;
   final int messageTimeStamp;
+  final int viewsCount;
 
   TelegramChannelMessageInfo.fromMessage(Message message)
       : id = message.id,
         channelId = message.chatId,
         content = message.content,
-        messageTimeStamp = message.date;
+        messageTimeStamp = message.date,
+        viewsCount = message.views;
 
   String get messageTimeFormatted {
     return formatTime(messageTimeStamp * 1000);
   }
+
+  String get contentType => content.getConstructor();
 
   TelegramChannelInfo get channel {
     final channelsStore = TelegramChannelInfoStore();

@@ -9,7 +9,7 @@ class TelegramPostControllerRx extends MvcController {
 
   String get postText => messsageInfo.content is tdapi.MessageText
       ? (messsageInfo.content as tdapi.MessageText).text.text
-      : messsageInfo.id.toString();
+      : messsageInfo.content.getConstructor();
 
   String get postTime => messsageInfo.messageTimeFormatted;
 

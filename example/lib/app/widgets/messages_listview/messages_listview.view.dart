@@ -32,23 +32,9 @@ class TelegramMessagesList extends MvcWidget<TelegramMessagesListController> {
   Widget messagesListItemBuilder(context, int index) {
     TelegramChannelMessageInfo message = c.messages[index];
 
-/*     String text = message.content is tdapi.MessageText
-        ? (message.content as tdapi.MessageText).text.text
-        : message.id.toString();
-
-    final postItem = TelegramPost(
-      postTitle: c.getChannelTitleById(message.channelId),
-      postTime: message.messageTimeFormatted,
-      postText: text,
-      channelImage: c.getChannelInfoById(message.channelId)?.channelPhoto,
-      onHeaderTap: () {
-        c.downloadChannelPhoto(message.channelId);
-      },
-    ); */
-
     final postItem = TelegramPostRx(
       key: ObjectKey(message),
-      messsageInfo: message,
+      messageInfo: message,
     );
 
     return Align(

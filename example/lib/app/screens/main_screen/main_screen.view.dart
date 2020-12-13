@@ -57,6 +57,13 @@ class MainScreen extends MvcScreen<MainScreenController> {
     TelegramChannelInfo channelInfo = c.channels[index];
     return ListTile(
       key: Key(channelInfo.id.toString()),
+      leading: Obx(
+        () => CircleAvatar(
+          radius: 25,
+          backgroundColor: Colors.grey,
+          backgroundImage: channelInfo.channelPhoto,
+        ),
+      ),
       title: Text(
         channelInfo.title,
         style: Get.theme.textTheme.headline6,
