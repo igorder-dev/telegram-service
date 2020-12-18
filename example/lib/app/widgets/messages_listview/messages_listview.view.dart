@@ -26,7 +26,8 @@ class TelegramMessagesList extends MvcWidget<TelegramMessagesListController> {
         child: ListView.builder(
           itemBuilder: messagesListItemBuilder,
           itemCount: c.messagesCount,
-          cacheExtent: 100,
+          cacheExtent: Get.mediaQuery.size.height *
+              5, // setting up cach size equal to 5 screen for smoother scrolling
         ),
       );
 

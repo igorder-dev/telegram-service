@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:telegram_service/td_api.dart';
@@ -20,7 +22,7 @@ class MessagePhotoPostContent
   @override
   Widget buildMain() => CollapsablePostContent(
         postText: c.postText,
-        mediaContent: _postMediaContent,
+        mediaContent: _postMediaContent1,
       );
 
   // TODO : Implement Post media content handling
@@ -28,6 +30,39 @@ class MessagePhotoPostContent
         aspectRatio: c.aspectRatio,
         child: Placeholder(
           color: Colors.yellow,
+        ),
+      );
+
+  Widget get _postMediaContent1 => AspectRatio(
+        aspectRatio: c.aspectRatio,
+        child: FittedBox(
+          child: Stack(
+            children: [
+              Container(
+                width: c.picWidth,
+                height: c.picHeight,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: c.minithumbnail,
+                    fit: BoxFit.fitWidth,
+                  ),
+                ),
+              ),
+              Container(
+                width: c.picWidth,
+                height: c.picHeight,
+                child: ClipRect(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
+                    child: Container(
+                      color: Colors.black.withOpacity(0.2),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          fit: BoxFit.fitWidth,
         ),
       );
 
