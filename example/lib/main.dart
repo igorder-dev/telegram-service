@@ -20,8 +20,13 @@ import 'utils/telegram/handlers/telegram_file_download_handler.dart';
 import 'utils/telegram/handlers/telegram_login_handler.dart';
 import 'utils/telegram/posts_builders/post_content_builder_service.dart';
 
-void main() {
+import 'package:hive/hive.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await Hive.initFlutter();
 
   TelegramPostContentBuilderService.init(
     [
