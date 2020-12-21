@@ -44,6 +44,10 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
             TelegramChannelMessageInfo.fromMessage(message);
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - added]");
+
+        // serialization test
+        Get.log("JSON serialized message: ${TelegramChannelMessageInfo.fromMessage(message).toJson()}");
+
       } else {
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - excluded]");
@@ -56,6 +60,9 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     final channelsStore = TelegramChannelInfoStore();
     getChatMessages(chat.id);
     channelsStore[chat.id] = TelegramChannelInfo.fromChat(chat);
+
+    // serialization test
+    Get.log("JSON serialized channel: ${TelegramChannelInfo.fromChat(chat).toJson()}");
   }
 
   void _handleChatsEvent(Chats chats) {
