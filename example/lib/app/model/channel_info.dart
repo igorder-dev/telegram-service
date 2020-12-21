@@ -1,13 +1,19 @@
 import 'package:flutter/painting.dart';
+import 'package:json_annotation/json_annotation.dart';
 import 'package:telegram_service/td_api.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 import 'dart:io' as io;
 
 import 'package:telegram_service_example/utils/telegram/handlers/telegram_file_download_handler.dart';
 
+part 'channel_info.g.dart';
+
+@JsonSerializable()
 class TelegramChannelInfo {
   final int id;
   final String title;
+
+  @RxChatPhotoInfoSerializer()
   final Rx<ChatPhotoInfo> photoInfoRx;
   bool _isChannelPhotoDownloading = false;
 
@@ -58,4 +64,23 @@ class TelegramChannelInfo {
       : this.id = chat.id,
         this.title = chat.title,
         this.photoInfoRx = chat.photo.obs;
+
+  // Default constructor for build_runner to work
+  TelegramChannelInfo(this.id, this.title, this.photoInfoRx);
+
+  // JSON serialization/deserialization
+  factory TelegramChannelInfo.fromJson(Map<String, dynamic> json) =>
+      _$TelegramChannelInfoFromJson(json);
+
+  Map<String, dynamic> toJson() => _$TelegramChannelInfoToJson(this);
+}
+
+class RxChatPhotoInfoSerializer implements JsonConverter<Rx<ChatPhotoInfo>, Map<String, dynamic>> {
+  const RxChatPhotoInfoSerializer();
+
+  @override
+  Rx<ChatPhotoInfo> fromJson(Map<String, dynamic> json) => Rx(ChatPhotoInfo.fromJson(json));
+
+  @override
+  Map<String, dynamic> toJson(Rx<ChatPhotoInfo> chatPhotoInfo) => chatPhotoInfo.toJson();
 }
