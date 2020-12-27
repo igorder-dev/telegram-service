@@ -163,7 +163,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     if(storageSize>0) {
       var latestKey = storage.allKeys[storageSize-1];
       var latestChat = TelegramChannelInfo.fromJson(jsonDecode(await storage.loadWithKey(latestKey)));
-      offset = latestChat.position.order;
+      offset = latestChat.position;
     }
 
     TelegramService.instance.sendCommand(GetChats(
