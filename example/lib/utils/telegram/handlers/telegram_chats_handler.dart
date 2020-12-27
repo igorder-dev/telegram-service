@@ -49,7 +49,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
 
         // Getting the messages box and initializing it
         var storage = HiveStorageService<String>('messages');
-        await storage.load();
+        if (!storage.isLoaded) await storage.load();
 
         // Checking if message is already stored in the chats box
         if (storage.contains(messageKey)){
@@ -65,7 +65,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
         }
 
         // Closing the messages box
-        storage.dispose();
+        // storage.dispose();
 
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - added]");
@@ -95,7 +95,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
 
     // Getting the chats box and initializing it
     var storage = HiveStorageService<String>('chats');
-    await storage.load();
+    if (!storage.isLoaded) await storage.load();
 
     // Checking if chat is already stored in the chats box
     if (storage.contains(chatKey)){
@@ -116,17 +116,28 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     }
 
     // Closing the chats box
-    storage.dispose();
+    // storage.dispose();
   }
 
-  void _handleChatsEvent(Chats chats) {
-    chats.chatIds.forEach((id) {
-      Get.log("_handleChatsEvent: $id");
-      TelegramService.instance.sendCommand(
-        GetChat(
-          chatId: id,
-        ),
-      );
+  void _handleChatsEvent(Chats chats) async {
+    // Getting the chats box and initializing it
+    var storage = HiveStorageService<String>('chats');
+    if (!storage.isLoaded) await storage.load();
+
+    final channelsStore = TelegramChannelInfoStore();
+
+    chats.chatIds.forEach((id) async {
+      if (!storage.contains(id.toString())){
+        Get.log("_handleChatsEvent: $id");
+        TelegramService.instance.sendCommand(
+          GetChat(
+            chatId: id,
+          ),
+        );
+      }else{
+        // Adding to channelsStore from chats box
+        channelsStore[id] = TelegramChannelInfo.fromJson(jsonDecode(await storage.loadWithKey(id.toString())));
+    }
     });
   }
 
@@ -139,11 +150,26 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     ));
   }
 
-  void getAllChats() {
+  void getAllChats() async {
+    // Getting the chats box and initializing it
+    var storage = HiveStorageService<String>('chats');
+    if (!storage.isLoaded) await storage.load();
+
+    int offset = 9223372036854775807; //load chats from the beginning
+
+    // unless there are chats in the storage, in that case load from the
+    // latest chat
+    var storageSize = storage.allKeys.length;
+    if(storageSize>0) {
+      var latestKey = storage.allKeys[storageSize-1];
+      var latestChat = TelegramChannelInfo.fromJson(jsonDecode(await storage.loadWithKey(latestKey)));
+      offset = latestChat.position.order;
+    }
+
     TelegramService.instance.sendCommand(GetChats(
       chatList: ChatListMain(),
       limit: 100,
-      offsetOrder: 9223372036854775807, //load chats from the beginning
+      offsetOrder: offset,
     ));
   }
 }
