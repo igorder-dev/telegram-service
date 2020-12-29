@@ -197,6 +197,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.10"
+  extra_pedantic:
+    dependency: transitive
+    description:
+      name: extra_pedantic
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   fake_async:
     dependency: transitive
     description:
@@ -333,6 +340,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.3.4"
+  iso:
+    dependency: "direct main"
+    description:
+      name: iso
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   js:
     dependency: transitive
     description:
@@ -381,7 +395,7 @@ packages:
       name: meta
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.3.0-nullsafety.4"
+    version: "1.3.0-nullsafety.3"
   mime:
     dependency: transitive
     description:
@@ -624,7 +638,7 @@ packages:
       name: stack_trace
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "1.10.0-nullsafety.4"
+    version: "1.10.0-nullsafety.1"
   stream_channel:
     dependency: transitive
     description:
@@ -716,6 +730,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.1.0-nullsafety.3"
+  visibility_detector:
+    dependency: "direct main"
+    description:
+      name: visibility_detector
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.5"
   watcher:
     dependency: transitive
     description:
@@ -752,5 +773,5 @@ packages:
     source: hosted
     version: "2.2.1"
 sdks:
-  dart: ">=2.10.0 <=2.11.0-234.0.dev"
+  dart: ">=2.10.0 <2.11.0"
   flutter: ">=1.20.0 <2.0.0"

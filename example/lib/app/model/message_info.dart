@@ -4,22 +4,30 @@ import 'package:json_annotation/json_annotation.dart';
 import 'channel_info.dart';
 import 'channel_info_store.dart';
 
+import 'package:id_mvc_app_framework/framework.dart';
+
 part 'message_info.g.dart';
 
 @JsonSerializable()
 class TelegramChannelMessageInfo {
   final int id;
   final int channelId;
-  final MessageContent content;
+
   final int messageTimeStamp;
   final int viewsCount;
+
+  @RxMessageContentSerializer()
+  final Rx<MessageContent> messageContentRx;
+
+  MessageContent get content => messageContentRx.value;
+  set content(MessageContent value) => messageContentRx.value = value;
 
   TelegramChannelMessageInfo.fromMessage(Message message)
       : id = message.id,
         channelId = message.chatId,
-        content = message.content,
         messageTimeStamp = message.date,
-        viewsCount = message.views;
+        viewsCount = message.views,
+        messageContentRx = message.content.obs;
 
   String get messageTimeFormatted {
     return formatTime(messageTimeStamp * 1000);
@@ -34,7 +42,7 @@ class TelegramChannelMessageInfo {
   }
 
   // Default constructor for serialization purposes
-  TelegramChannelMessageInfo(this.id, this.channelId, this.content,
+  TelegramChannelMessageInfo(this.id, this.channelId, this.messageContentRx,
       this.messageTimeStamp, this.viewsCount);
 
   // JSON serialization/deserialization
@@ -42,4 +50,17 @@ class TelegramChannelMessageInfo {
       _$TelegramChannelMessageInfoFromJson(json);
 
   Map<String, dynamic> toJson() => _$TelegramChannelMessageInfoToJson(this);
+}
+
+class RxMessageContentSerializer
+    implements JsonConverter<Rx<MessageContent>, Map<String, dynamic>> {
+  const RxMessageContentSerializer();
+
+  @override
+  Rx<MessageContent> fromJson(Map<String, dynamic> json) =>
+      Rx(MessageContent.fromJson(json));
+
+  @override
+  Map<String, dynamic> toJson(Rx<MessageContent> messageContent) =>
+      messageContent.toJson();
 }

@@ -11,12 +11,13 @@ TelegramChannelMessageInfo _$TelegramChannelMessageInfoFromJson(
   return TelegramChannelMessageInfo(
     json['id'] as int,
     json['channelId'] as int,
-    json['content'] == null
-        ? null
-        : MessageContent.fromJson(json['content'] as Map<String, dynamic>),
+    const RxMessageContentSerializer()
+        .fromJson(json['messageContentRx'] as Map<String, dynamic>),
     json['messageTimeStamp'] as int,
     json['viewsCount'] as int,
-  );
+  )..content = json['content'] == null
+      ? null
+      : MessageContent.fromJson(json['content'] as Map<String, dynamic>);
 }
 
 Map<String, dynamic> _$TelegramChannelMessageInfoToJson(
@@ -24,7 +25,9 @@ Map<String, dynamic> _$TelegramChannelMessageInfoToJson(
     <String, dynamic>{
       'id': instance.id,
       'channelId': instance.channelId,
-      'content': instance.content.toJson(),
       'messageTimeStamp': instance.messageTimeStamp,
       'viewsCount': instance.viewsCount,
+      'messageContentRx':
+          const RxMessageContentSerializer().toJson(instance.messageContentRx),
+      'content': instance.content,
     };

@@ -71,6 +71,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "3.0.10"
+  extra_pedantic:
+    dependency: transitive
+    description:
+      name: extra_pedantic
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.2.0"
   fake_async:
     dependency: transitive
     description:
@@ -158,6 +165,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.1"
+  iso:
+    dependency: "direct main"
+    description:
+      name: iso
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.3.0"
   logging:
     dependency: transitive
     description:

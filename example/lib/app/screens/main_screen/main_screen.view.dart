@@ -5,6 +5,7 @@ import 'package:telegram_service_example/app/model/channel_info.dart';
 
 import 'package:telegram_service_example/app/widgets/app_scaffold.dart';
 import 'package:telegram_service_example/app/widgets/messages_listview/messages_listview.view.dart';
+import 'package:telegram_service_example/utils/mvc/MvcCommandBuilder.dart';
 import 'main_screen.controller.dart';
 
 class MainScreen extends MvcScreen<MainScreenController> {
@@ -44,9 +45,25 @@ class MainScreen extends MvcScreen<MainScreenController> {
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(child: _channelsListView),
+          Expanded(
+              child: MvcCommandBuilder(
+            command: c.channelsLoadCmd,
+            onCompleted: (_) => _channelsListView,
+            onReady: (_) => Center(
+              child: Text(
+                'TeleFeed!',
+                style: Theme.of(Get.context).textTheme.headline2,
+              ),
+            ),
+            onExecuting: (_) => _loadingView,
+          )),
         ],
-      ).paddingAll(10);
+      );
+
+  Widget get _loadingView => Align(
+        alignment: Alignment.center,
+        child: CircularProgressIndicator(),
+      );
 
   Widget get _channelsListView => ListView.builder(
         itemBuilder: channelListItemBuilder,

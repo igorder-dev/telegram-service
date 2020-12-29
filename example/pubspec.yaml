@@ -35,6 +35,8 @@ dependencies:
   time_formatter: ^1.0.0+5
   hive: ^1.4.4+1
   hive_flutter: ^0.3.1
+  visibility_detector: ^0.1.5
+  iso: ^0.3.0
 
 dev_dependencies:
   flutter_test:

@@ -5,8 +5,10 @@ import 'package:flutter/widgets.dart';
 import 'package:telegram_service/td_api.dart' as tdapi;
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/collapsable_content/collapsable_content.view.dart';
+import 'package:telegram_service_example/utils/mvc/MvcCommandBuilder.dart';
 import 'package:telegram_service_example/utils/telegram/posts_builders/post_content_widget.dart';
 import 'package:id_mvc_app_framework/framework.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 
 import 'messagePhoto_post.controller.dart';
 
@@ -25,16 +27,30 @@ class MessagePhotoPostContent
         postText: c.postText,
         mediaContent: GestureDetector(
           onTap: () {
-            // TODO : establish on tap media content onTap handling
-            Get.log('${c.messsageInfo.id}');
+            c.onContentTap?.call();
           },
           child: Stack(
             children: [
-              _mediaContent,
-              _mediaContentStateIcon,
+              _visibilityDetector,
+              MvcCommandBuilder(
+                command: c.loadCommand,
+                onReady: (_) =>
+                    _mediaContentStateIconOverlay(_getNotReadyStateIcon()),
+                onExecuting: (_) =>
+                    _mediaContentStateIconOverlay(_getLoadingStateWidget()),
+                onCompleted: (_) => Container(),
+              ),
             ],
           ),
         ),
+      );
+
+  Widget get _visibilityDetector => VisibilityDetector(
+        key: Key("${c.messsageInfo.id}"),
+        child: _mediaContent,
+        onVisibilityChanged: (VisibilityInfo info) {
+          c.loadMessagePhoto();
+        },
       );
 
   Widget get _mediaContent => AspectRatio(
@@ -45,16 +61,12 @@ class MessagePhotoPostContent
         ),
       );
 
-  Widget get _mediaContentStateIcon => AspectRatio(
+  Widget _mediaContentStateIconOverlay(Widget icon) => AspectRatio(
         aspectRatio: c.aspectRatio,
         child: Align(
           alignment: Alignment.center,
           child: Container(
-            child: Icon(
-              Icons.cloud_download_outlined,
-              size: 40,
-              color: Colors.grey[850],
-            ).paddingAll(5),
+            child: icon.paddingAll(5),
             decoration: BoxDecoration(
               color: Colors.grey[850].withOpacity(0.2),
               borderRadius: BorderRadius.circular(40),
@@ -63,21 +75,36 @@ class MessagePhotoPostContent
         ),
       );
 
-  // TODO : Implement Post media content handling
-  Widget get _mediaPlaceholder => AspectRatio(
-        aspectRatio: c.aspectRatio,
-        child: Placeholder(
-          color: Colors.yellow,
+  Widget _getNotReadyStateIcon() => Icon(
+        Icons.cloud_download_outlined,
+        size: 40,
+        color: Colors.grey[850],
+      );
+  Widget _getLoadingStateWidget() => SizedBox.fromSize(
+        size: Size.square(40),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.grey[850]),
         ),
       );
 
+  Widget get _getMessagePhoto {
+    print("screen size ${Get.width.floor()}");
+    return Image(
+      image: ResizeImage(
+        c.messagePhotoFile,
+        width: Get.width.floor(),
+      ),
+      fit: BoxFit.fitWidth,
+    );
+  }
+
   Widget get _mediaContentByState {
-    switch (c.state) {
-      case MessagePhotoPostContentController.IMAGE_NOT_LOADED_STATE:
-        return _getThumbnail;
-      default:
-        return _mediaPlaceholder;
-    }
+    return MvcCommandBuilder(
+      command: c.loadCommand,
+      onCompleted: (_) => _getMessagePhoto,
+      onExecuting: (_) => _getThumbnail,
+      onReady: (_) => _getThumbnail,
+    );
   }
 
   Widget get _getThumbnail => Stack(
@@ -86,10 +113,11 @@ class MessagePhotoPostContent
             width: c.picWidth,
             height: c.picHeight,
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: c.minithumbnail,
-                fit: BoxFit.fitWidth,
-              ),
+              color: Colors.red,
+              // image: DecorationImage(
+              //   image: c.minithumbnail,
+              //   fit: BoxFit.fitWidth,
+              // ),
             ),
           ),
           Container(

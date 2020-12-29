@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 
-import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/model/message_info_store.dart';
+import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
 import 'package:telegram_service_example/utils/telegram/handlers/telegram_chats_handler.dart';
+
+import 'load_messages_command.dart';
 
 class TelegramMessagesListController extends MvcController {
   final int channelId;
+
   final messagesStore = TelegramChannelMessageInfoStore();
-  final channelsStore = TelegramChannelInfoStore();
+  MvcCommand loadCommand;
+
   List<TelegramChannelMessageInfo> _messages = List();
 
   List<TelegramChannelMessageInfo> get messages => _messages;
@@ -20,10 +24,8 @@ class TelegramMessagesListController extends MvcController {
   @override
   void onInit() {
     super.onInit();
-    _messages = messagesStore.getMessagesByChannelId(channelId: channelId);
-    if (channelId != null) {
-      TdlibChatsHandler.instance.getChatMessages(channelId);
-    }
+
+    loadCommand = LoadMessagesCmd.cmd(channelId);
 
     debounce(
       messagesStore,
@@ -31,7 +33,20 @@ class TelegramMessagesListController extends MvcController {
         _messages = messagesStore.getMessagesByChannelId(channelId: channelId);
         update();
       },
-      time: 1.seconds,
+      time: 2.seconds,
     );
+  }
+
+  @override
+  void onReady() {
+    loadCommand.execute();
+    _messages = messagesStore.getMessagesByChannelId(channelId: channelId);
+    super.onReady();
+  }
+
+  @override
+  void dispose() {
+    loadCommand.dispose();
+    super.dispose();
   }
 }

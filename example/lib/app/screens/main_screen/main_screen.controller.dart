@@ -4,15 +4,18 @@ import 'package:id_mvc_app_framework/framework.dart';
 import 'package:telegram_service_example/app/model/channel_info.dart';
 import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/screens/messages_screen.dart';
+import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
 
 import 'package:telegram_service_example/utils/telegram/handlers/telegram_chats_handler.dart';
 
+import 'load_channels_command.dart';
+
 class MainScreenController extends MvcController {
   final channelsStore = TelegramChannelInfoStore();
+  final MvcCommand channelsLoadCmd = LoadChannelsCmd.cmd();
 
   List<TelegramChannelInfo> get channels => channelsStore.values.toList();
   int get channelsCount => channelsStore?.values?.length ?? 0;
-  int _lastChannelsCount = 0;
 
   void showChannelMessages(TelegramChannelInfo channelInfo) {
     Get.to(TelegramMessagesScreen(
@@ -26,15 +29,14 @@ class MainScreenController extends MvcController {
   }
 
   void loadChats() {
-    TdlibChatsHandler.instance.getAllChats();
-    Timer.periodic(1.seconds, (timer) {
-      if (_lastChannelsCount == channelsStore.length) {
-        timer.cancel();
-        return;
-      }
-      TdlibChatsHandler.instance.getAllChats();
-      _lastChannelsCount = channelsStore.length;
-    });
+    /* Worker _worker;
+    _worker = ever(channelsLoadCmd, (_) {
+      channelsLoadCmd.result.handleStatus(onCompleted: (_) {
+        _worker.dispose();
+        channelsLoadCmd.dispose();
+      });
+    }); */
+    channelsLoadCmd.execute();
   }
 
   @override
@@ -44,14 +46,8 @@ class MainScreenController extends MvcController {
   }
 
   @override
-  void onReady() {
-    super.onReady();
-    debounce(
-      channelsStore,
-      (_) {
-        update();
-      },
-      time: 1.seconds,
-    );
+  void dispose() {
+    channelsLoadCmd.dispose();
+    super.dispose();
   }
 }

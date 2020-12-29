@@ -37,32 +37,35 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
 
   void _handleMessagesEvent(Messages messages) {
     final messagesStore = TelegramChannelMessageInfoStore();
-    messages.messages.forEach((message) {
+    messages.messages.forEach((message) async {
       final messageInfo = TelegramChannelMessageInfo.fromMessage(message);
-      if (TelegramPostContentBuilderService.hasBuilder(messageInfo)) {
-        messagesStore[message.id] =
-            TelegramChannelMessageInfo.fromMessage(message);
+      if (TelegramPostContentBuilderService.hasBuilder(messageInfo) &&
+          !messagesStore.containsKey(message.id)) {
+        messagesStore.pureMap[message.id] = messageInfo;
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - added]");
 
         // serialization test
-        Get.log("JSON serialized message: ${TelegramChannelMessageInfo.fromMessage(message).toJson()}");
+        //  Get.log("JSON serialized message: ${TelegramChannelMessageInfo.fromMessage(message).toJson()}");
 
       } else {
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - excluded]");
       }
     });
+    messagesStore.refresh();
   }
 
   void _handleChatEvent(Chat chat) {
     if (chat.type.getConstructor() != ChatTypeSupergroup.CONSTRUCTOR) return;
     final channelsStore = TelegramChannelInfoStore();
-    getChatMessages(chat.id);
+    // getChatMessages(chat.id);
+
     channelsStore[chat.id] = TelegramChannelInfo.fromChat(chat);
 
     // serialization test
-    Get.log("JSON serialized channel: ${TelegramChannelInfo.fromChat(chat).toJson()}");
+    //  Get.log(
+    //      "JSON serialized channel: ${TelegramChannelInfo.fromChat(chat).toJson()}");
   }
 
   void _handleChatsEvent(Chats chats) {

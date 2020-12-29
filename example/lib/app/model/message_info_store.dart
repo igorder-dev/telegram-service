@@ -16,6 +16,8 @@ class TelegramChannelMessageInfoStore
               ?.toList()) ??
       List();
 
+  Map<int, TelegramChannelMessageInfo> get pureMap => this.value;
+
   factory TelegramChannelMessageInfoStore() {
     return Get.put(TelegramChannelMessageInfoStore._());
   }

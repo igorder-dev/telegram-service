@@ -16,7 +16,8 @@ dependencies:
   id_mvc_app_framework:
     git:
       url: https://github.com/igorder-dev/flutter-mvc-framework.git
-
+  iso: ^0.3.0
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter
