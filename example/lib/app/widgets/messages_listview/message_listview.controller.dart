@@ -5,8 +5,6 @@ import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/model/message_info_store.dart';
 
-import 'package:telegram_service_example/utils/telegram/handlers/telegram_chats_handler.dart';
-
 import 'load_messages_command.dart';
 
 class TelegramMessagesListController extends MvcController {

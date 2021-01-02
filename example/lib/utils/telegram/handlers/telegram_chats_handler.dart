@@ -62,13 +62,8 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
   void _handleChatEvent(Chat chat) {
     if (chat.type.getConstructor() != ChatTypeSupergroup.CONSTRUCTOR) return;
     final channelsStore = TelegramChannelInfoStore();
-    // getChatMessages(chat.id);
 
     channelsStore[chat.id] = TelegramChannelInfo.fromChat(chat);
-
-    // serialization test
-    //  Get.log(
-    //      "JSON serialized channel: ${TelegramChannelInfo.fromChat(chat).toJson()}");
   }
 
   void _handleChatsEvent(Chats chats) {
@@ -109,5 +104,25 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
       limit: 100,
       offsetOrder: 9223372036854775807, //load chats from the beginning
     ));
+  }
+
+  Future<void> getAllChatsAsync() async {
+    final chats = await TelegramService.instance.sendCommandWithResult(
+      GetChats(
+        chatList: ChatListMain(),
+        limit: 100,
+        offsetOrder: 9223372036854775807, //load chats from the beginning
+      ),
+    );
+    if (!(chats is Chats)) return;
+    for (var chatId in (chats as Chats).chatIds) {
+      final chat = await TelegramService.instance.sendCommandWithResult(
+        GetChat(
+          chatId: chatId,
+        ),
+      );
+      if (!(chat is Chat)) continue;
+      _handleChatEvent(chat);
+    }
   }
 }

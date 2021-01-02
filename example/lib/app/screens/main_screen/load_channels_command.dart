@@ -11,25 +11,20 @@ class LoadChannelsCmd {
   static MvcCommand cmd() => MvcCommand.async(
         canBeDoneOnce: true,
         func: (_) async {
-          final asyncLock = AsyncLock();
-
           final channelsStore = TelegramChannelInfoStore();
           int _lastChannelsCount = 0;
           int _attempts = 0;
-          TdlibChatsHandler.instance.getAllChats();
-          Timer.periodic(1.seconds, (timer) {
-            if ((_lastChannelsCount == channelsStore.length &&
-                    _lastChannelsCount > 0) ||
-                _attempts++ > 5) {
-              timer.cancel();
-              asyncLock.release();
-              return;
-            }
-            TdlibChatsHandler.instance.getAllChats();
-            _lastChannelsCount = channelsStore.length;
-          });
 
-          return await asyncLock();
+          while (!(((_lastChannelsCount == channelsStore.length &&
+                  _lastChannelsCount > 0) ||
+              _attempts++ > 5))) {
+            Get.log(
+                "[channels count] ${channelsStore.length} - attempts : $_attempts");
+            _lastChannelsCount = channelsStore.length;
+            await Future.delayed(1.seconds);
+
+            await TdlibChatsHandler.instance.getAllChatsAsync();
+          }
         },
       );
 }

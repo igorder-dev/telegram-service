@@ -25,8 +25,8 @@ class LoadMessagesCmd {
           while (!((_lastMessagesCount == messagesStore.length &&
                   _lastMessagesCount > 0) ||
               _attempts++ > 3)) {
-            await _requestMessagesAsync(cIdsList);
             _lastMessagesCount = messagesStore.length;
+            await _requestMessagesAsync(cIdsList);
           }
           // Timer.periodic(1.seconds, (timer) {
           //   if ((_lastMessagesCount == messagesStore.length &&

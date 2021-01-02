@@ -37,7 +37,7 @@ void main() async {
   );
 
   TelegramService.start(
-    tdClient: FFITdClient(),
+    tdClient: MCTdClient(),
     eventHandlers: [
       Get.put<TdlibLoginHandler>(TdlibLoginHandler()),
       Get.put<TdlibChatsHandler>(TdlibChatsHandler()),
@@ -60,7 +60,7 @@ void main() async {
     ),
     onLogOut: () => Get.offAllNamed(AppRoutes.LOGOUT),
     onEvent: teleServiceEvent,
-    logEnabled: true,
+    logEnabled: false,
   );
 
   runMVCApp(
