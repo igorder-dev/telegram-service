@@ -48,21 +48,12 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
         String messageKey = message.id.toString();
 
         // Getting the messages box and initializing it
-        var storage = HiveStorageService<String>('messages');
-        if (!storage.isLoaded) await storage.load();
-
-        // Checking if message is already stored in the chats box
-        if (storage.contains(messageKey)){
-          // Adding to messagesStore from chats box
-          messagesStore[message.id] = TelegramChannelMessageInfo.fromJson(jsonDecode(await storage.loadWithKey(messageKey)));
-        }else{
-          messagesStore[message.id] =
-              TelegramChannelMessageInfo.fromMessage(message);
-          storage.data= jsonEncode(TelegramChannelMessageInfo.fromMessage(message));
-          await storage.saveWithKey(messageKey);
-
+         var storage = await HiveStorageService.openAndLoadJsonBox('messages');
+         messagesStore[message.id] = TelegramChannelMessageInfo.fromMessage(message);
+         storage.data = jsonEncode(messagesStore);
+         await storage.save();
           Get.log("_handleMessagesEvent: Message ID${message.id} saved to Hive successfully");
-        }
+
 
         // Closing the messages box
         // storage.dispose();
@@ -94,8 +85,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     String chatKey = chat.id.toString();
 
     // Getting the chats box and initializing it
-    var storage = HiveStorageService<String>('chats');
-    if (!storage.isLoaded) await storage.load();
+    var storage = await HiveStorageService.openAndLoadJsonBox('chats');
 
     // Checking if chat is already stored in the chats box
     if (storage.contains(chatKey)){
@@ -121,8 +111,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
 
   void _handleChatsEvent(Chats chats) async {
     // Getting the chats box and initializing it
-    var storage = HiveStorageService<String>('chats');
-    if (!storage.isLoaded) await storage.load();
+    var storage = await HiveStorageService.openAndLoadJsonBox('chats');
 
     final channelsStore = TelegramChannelInfoStore();
 
@@ -152,8 +141,7 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
 
   void getAllChats() async {
     // Getting the chats box and initializing it
-    var storage = HiveStorageService<String>('chats');
-    if (!storage.isLoaded) await storage.load();
+    var storage = await HiveStorageService.openAndLoadJsonBox('chats');
 
     int offset = 9223372036854775807; //load chats from the beginning
 

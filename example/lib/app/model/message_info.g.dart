@@ -24,7 +24,7 @@ Map<String, dynamic> _$TelegramChannelMessageInfoToJson(
     <String, dynamic>{
       'id': instance.id,
       'channelId': instance.channelId,
-      'content': instance.content,
+      'content': instance.content.toJson(),
       'messageTimeStamp': instance.messageTimeStamp,
       'viewsCount': instance.viewsCount,
     };

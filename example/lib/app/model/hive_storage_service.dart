@@ -46,6 +46,12 @@ class HiveStorageService<T> extends StorageServiceBase<T> {
     return _box.get(key);
   }
 
+  static Future<HiveStorageService<String>> openAndLoadJsonBox(String boxName) async{
+    var storage = HiveStorageService<String>(boxName);
+    if (!storage.isLoaded) await storage.load();
+    return storage;
+  }
+
   // Getter/setter for data
   @override
   T get data => _data;
