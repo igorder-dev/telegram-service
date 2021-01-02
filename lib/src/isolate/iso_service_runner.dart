@@ -1,14 +1,21 @@
 import 'dart:async';
+import 'dart:isolate';
 
 import 'package:id_mvc_app_framework/framework.dart';
-import 'package:iso/iso.dart';
+import './iso/iso.dart';
+
+export './iso/iso.dart';
+
+import 'package:meta/meta.dart';
 
 class IsoServiceRunner with GetxServiceMixin {
-  IsoRunner _isoRunner;
-  IsoRunner get isoRunner {
+  static const TAG_PREFIX = "iso_service_tag";
+
+  IsoServicePortal _isoPortal;
+  IsoServicePortal get isoPortal {
     assert(_zone == IsoServiceZone.isolate,
         "Can be called only from isolate thread intsance of service");
-    return _isoRunner;
+    return _isoPortal;
   }
 
   IsoServiceZone _zone;
@@ -21,69 +28,81 @@ class IsoServiceRunner with GetxServiceMixin {
     return _iso;
   }
 
-  static Future<void> Function(IsoRunner) runFunction;
-  IsoOnData onDataOut;
-  IsoOnData onError;
-
-  IsoServiceRunner._(this.onError, this._zone);
+  IsoServiceRunner._(this._zone);
 
   final _dataInStream = StreamController<dynamic>.broadcast();
 
-  static void _initMainInstance(IsoOnData onError) =>
-      Get.put(IsoServiceRunner._(onError, IsoServiceZone.main));
+  static void initMainInstance(IsoOnData onError, String tag) =>
+      Get.put<IsoServiceRunner>(
+        IsoServiceRunner._(IsoServiceZone.main),
+        tag: tag,
+      );
 
-  static void _initIsoInstance() =>
-      Get.put(IsoServiceRunner._(null, IsoServiceZone.isolate));
+  static void initIsoInstance(String tag) => Get.put<IsoServiceRunner>(
+        IsoServiceRunner._(IsoServiceZone.isolate),
+        tag: tag,
+      );
 
-  static IsoServiceRunner get instance => Get.find();
+  static IsoServiceRunner instance({String tag}) =>
+      Get.find<IsoServiceRunner>(tag: tag);
 
   static Future<IsoServiceRunner> start(
-    Future<void> Function(IsoRunner) runFunction, {
+    void Function(IsoServicePortal) runFunction, {
     IsoOnData onError,
     IsoOnData onData,
     List<dynamic> args = const <dynamic>[],
+    String tag,
   }) async {
     assert(runFunction != null, "runFunction must not be null");
-    _initMainInstance(onError);
-    instance._iso = Iso(_run, onDataOut: onData, onError: onError);
+    initMainInstance(onError, tag);
+    final runner = instance(tag: tag);
 
-    await instance.iso.run(args);
-    await instance.iso.onCanReceive;
-    return instance;
+    runner._iso = Iso(runFunction, onError: onError);
+
+    await runner.iso.run(
+      tag: tag,
+      args: args,
+    );
+    await runner.iso.onCanReceive;
+    runner.iso.dataOut.listen((data) {
+      if (data is RunnerStop) {
+        stop(tag: data.tag);
+        return;
+      }
+      runner._dataInStream.add(data);
+    });
+    return runner;
   }
 
-  //entry point to isolate
-  static Future<void> _run(IsoRunner isoRunner) async {
-    _initIsoInstance();
-    instance._isoRunner = isoRunner;
-    isoRunner.receive();
-    await runFunction?.call(isoRunner);
-  }
-
-  static void stop() {
-    final runner = instance;
+  static void stop({String tag}) {
+    final runner = instance(tag: tag);
     if (runner.zone == IsoServiceZone.main) {
-      runner._dataInStream.close();
-    } else {}
+      runner.iso.dispose();
+    } else {
+      send(RunnerStop(tag), tag: tag);
+    }
     runner.dispose();
   }
 
-  static void send(dynamic data) {
-    final runner = instance;
+  static void send(dynamic data, {String tag}) {
+    final runner = instance(tag: tag);
     if (runner.zone == IsoServiceZone.main) {
+      print("[Send from main] $data");
       runner.iso.send(data);
     } else {
-      runner.isoRunner.send(data);
+      print("[Send from Isolate] $data");
+      runner.isoPortal.send(data);
     }
   }
 
-  Stream<dynamic> get dataIn {
-    final runner = instance;
-    if (runner.zone == IsoServiceZone.main) {
-      return runner.iso.dataOut;
-    } else {
-      return runner.dataIn;
-    }
+  static Stream<dynamic> dataIn({String tag}) {
+    final runner = instance(tag: tag);
+    return runner._dataInStream.stream;
+  }
+
+  static bool isInIsolateZone({String tag}) {
+    final runner = instance(tag: tag);
+    return runner.zone == IsoServiceZone.isolate;
   }
 
   void dispose() {
@@ -91,9 +110,53 @@ class IsoServiceRunner with GetxServiceMixin {
   }
 }
 
-class RunnerStop {}
+class RunnerStop {
+  final String tag;
+
+  RunnerStop(this.tag);
+}
 
 enum IsoServiceZone {
   main,
   isolate,
+}
+
+class IsoServicePortal {
+  /// A [_chanOut] has to be provided
+  IsoServicePortal(this._chanOut, {this.tag, this.args})
+      : assert(_chanOut != null);
+
+  /// The [SendPort] to send data into the isolate
+  final SendPort _chanOut;
+
+  /// The arguments for the run function
+  List<dynamic> args;
+
+  /// Does the run function has arguments
+  bool get hasArgs => args.isNotEmpty;
+
+  /// Send data to the main thread
+  void send(dynamic data) => _chanOut.send(data);
+
+  final String tag;
+
+  /// Initialize the receive channel
+  ///
+  /// This must be done before sending messages into the isolate
+  /// after this the [Iso.onCanReceive] future will be completed
+  ReceivePort _receive() {
+    final listener = ReceivePort();
+    send(listener.sendPort);
+    return listener;
+  }
+
+  void init() {
+    IsoServiceRunner.initIsoInstance(tag);
+    final runner = IsoServiceRunner.instance(tag: tag);
+
+    runner._isoPortal = this;
+    _receive().listen((data) {
+      runner._dataInStream.add(data);
+    });
+  }
 }

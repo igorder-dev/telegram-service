@@ -1,7 +1,7 @@
 import 'package:flutter/painting.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
-import 'package:telegram_service/td_api.dart' as tdapi;
+import 'package:telegram_service/tdapi.dart' as tdapi;
 
 class TelegramPostControllerRx extends MvcController {
   final TelegramChannelMessageInfo messsageInfo;

@@ -1,5 +1,5 @@
 import 'package:flutter/widgets.dart';
-import 'package:telegram_service/td_api.dart';
+import 'package:telegram_service/tdapi.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/collapsable_content/collapsable_content.view.dart';
 import 'package:telegram_service_example/utils/telegram/posts_builders/post_content_widget.dart';

@@ -1,6 +1,6 @@
+import 'package:tdlib/td_api.dart';
 import 'package:telegram_service/src/service/telegram_event_handler.dart';
 import 'package:telegram_service/src/service/telegram_service.dart';
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 
 ///Telegram event handler that handles logout event.
 ///if TelegramService.onLogOut is null tries to restart TelegramService, otherwise call callback function

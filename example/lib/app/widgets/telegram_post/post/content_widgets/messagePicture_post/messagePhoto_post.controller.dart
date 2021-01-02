@@ -2,9 +2,9 @@ import 'dart:typed_data';
 
 import 'package:flutter/cupertino.dart';
 import 'package:id_mvc_app_framework/framework.dart';
+import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
-import 'package:telegram_service/td_api.dart' as tdapi;
-import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
+import 'package:telegram_service/tdapi.dart' as tdapi;
 import 'dart:convert';
 import 'dart:io' as io;
 
@@ -63,13 +63,13 @@ class MessagePhotoPostContentController extends MvcController {
       messagePhotoObject?.height?.toDouble() ??
       messageContent.photo.minithumbnail.height.toDouble();
 
-  MemoryImage get minithumbnail {
+  ImageProvider get minithumbnail {
     if (thumbnailBytes == null) {
       final thumbnailData = messageContent.photo.minithumbnail.data;
       if (thumbnailData != null) thumbnailBytes = base64Decode(thumbnailData);
     }
     if (thumbnailBytes == null)
-      return null;
+      return AssetImage('assets/images/empty_thumbnail.jpg');
     else
       return MemoryImage(thumbnailBytes);
   }

@@ -1,6 +1,6 @@
 import 'package:id_mvc_app_framework/model.dart';
+import 'package:tdlib/td_api.dart';
 import 'package:telegram_service/src/service/telegram_service.dart';
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 
 /// Abstract class that can be registered in [TelegramService.start] for specific event types
 /// - [eventsToHandle] - List describing list of eventTypes to handle

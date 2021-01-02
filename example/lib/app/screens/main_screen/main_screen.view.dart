@@ -1,11 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:id_mvc_app_framework/framework.dart';
+import 'package:id_mvc_app_framework/utils/command/MvcCommandBuilder.dart';
 import 'package:telegram_service_example/app/model/channel_info.dart';
 
 import 'package:telegram_service_example/app/widgets/app_scaffold.dart';
 import 'package:telegram_service_example/app/widgets/messages_listview/messages_listview.view.dart';
-import 'package:telegram_service_example/utils/mvc/MvcCommandBuilder.dart';
+
 import 'main_screen.controller.dart';
 
 class MainScreen extends MvcScreen<MainScreenController> {

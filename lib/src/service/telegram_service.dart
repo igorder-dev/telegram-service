@@ -3,16 +3,17 @@ import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 import 'package:id_mvc_app_framework/model.dart';
+import 'package:id_mvc_app_framework/utils/async/async_lock.dart';
+import 'package:tdlib/td_api.dart';
+import 'package:telegram_service/src/tdclient/tdlcient.dart';
 import 'handlers/tdlib_authorization_close_handler.dart';
 import 'handlers/tdlib_encryptionkey_handler.dart';
 import 'handlers/tdlib_parameters_handler.dart';
 import 'telegram_event_handler.dart';
 import 'dart:developer' as dev;
 
-import 'package:telegram_service/src/tdapi/tdapi.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:path_provider/path_provider.dart';
-import '../tdclient/tdclient.dart';
 
 // cSpell:enable
 
@@ -74,6 +75,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   static Future<void> start({
     @required TdlibParameters parameters,
     @required List<TelegramEventHandler> eventHandlers,
+    @required TdClientInterface tdClient,
     int verbosityLevel = 1,
     TelegramErrorCallback onError,
     TelegramEventCallback onEvent,
@@ -86,6 +88,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     // Instance exists in App memory up until closure
     await Get.putAsync(() async {
       final _instance = TelegramService._(
+        tdClient: tdClient,
         parameters: parameters,
         eventHandlers: eventHandlers,
         verbosityLevel: verbosityLevel,
@@ -164,6 +167,9 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
 
   // * Variables definition
 
+  ///
+  final TdClientInterface tdClient;
+
   /// internal TdLIb client ID
   int _client;
 
@@ -194,13 +200,15 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
 
   /// Internal constructor for [TelegramService]. Check [TelegramService.start] for more information
   TelegramService._({
+    @required this.tdClient,
     @required this.parameters,
     @required this.eventHandlers,
     this.verbosityLevel = 1,
     this.onError,
     this.onEvent,
     this.onLogOut,
-  }) : assert(eventHandlers != null) {
+  })  : assert(eventHandlers != null),
+        assert(tdClient != null) {
     // initializes event handling stream. All events are handled in [_onEvent] function
     _eventController = StreamController();
     _eventController.stream.listen(_onEvent);
@@ -253,27 +261,29 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
 
     try {
-      _client = await TdClient
-          .createClient(); //? calls TdLib plugin to creat telegram client instance
+      var clientActivated = await tdClient.create();
+      if (!clientActivated)
+        throw TelegramServiceException(
+            "Could not create telegram service instance");
 
-      log("Telegram client created. id: [$_client]");
+      log("Telegram client created. id: [${tdClient.hashCode}]");
 
       await _getPermissions(); //checks storage permiissions
 
-      log("Storage permissions granted for client  [$_client]");
+      log("Storage permissions granted for client  [${tdClient.hashCode}]");
 
       // inits directories for tdlib
       appDocDir = await getApplicationDocumentsDirectory();
       appExtDir = await getTemporaryDirectory();
 
-      log("Setting client [$_client]  verbosity level ${this.verbosityLevel}");
+      log("Setting client [${tdClient.hashCode}]  verbosity level ${this.verbosityLevel}");
       await execute(SetLogVerbosityLevel(
           newVerbosityLevel: this
               .verbosityLevel)); //? call TdLib plugin to set verbosity level
 
-      _eventReceiver = TdClient.clientEvents(_client).listen(
+      _eventReceiver = tdClient.eventsStream.listen(
           _receiver); //* registers [_receiver] to listen all events from telegram client
-      log("Client  [$_client] subscribed for incoming events");
+      log("Client  [${tdClient.hashCode}]  subscribed for incoming events");
 
       initHandlersMap(); //initializes event handlers
     } catch (e) {
@@ -308,7 +318,8 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   ///Handles all events from telegram client
   ///If @extra in event object contains callback reference tries to call stored callback function
   ///Otherwise broadcast event to specific event handling stream associated with TlObject.CONSTRUCTOR
-  void _onEvent(TdObject event) async {
+  void _onEvent(dynamic event) async {
+    assert(event is TdObject, "event must be instance of TdObject");
     final requestID = event.extra?.toString(); //gets callback ID from the event
     log("Event [${event.getConstructor()}] is received with callback id [$requestID]");
 
@@ -332,7 +343,8 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   }
 
 //If callback registered call it and remove from callbacks map.
-  void _onEventCallback(TdObject event) {
+  void _onEventCallback(dynamic event) {
+    assert(event is TdObject, "event must be instance of TdObject");
     final requestID = event.extra?.toString(); //gets callback ID from the event
     _eventCallbacks[requestID](event, requestID);
     _eventCallbacks[requestID] = null;
@@ -341,7 +353,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   ///Calls TdLib plugin to destroy client
   ///
   /// ! Causes fatal error after attempt to re-start client
-  Future<void> destroyClient() async => await TdClient.destroyClient(_client);
+  Future<void> destroyClient() async => await tdClient.destroy();
 
   // TODO: Fix fatal mistake from the plugin during attempt to stop and restart service
 
@@ -365,7 +377,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
 
   /// Executes sync command to the tdlib plugin
   Future<TdObject> execute(TdFunction command) async =>
-      await TdClient.clientExecute(_client, command);
+      await tdClient.execute(command);
 
   /// Sends [command] to TdLib plugin for execution. Can't be null
   ///
@@ -374,12 +386,14 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   ///  - [callback] - callback function for handling response from TdLib plugin
   ///  - [onError] - custom callback for handling error if returned tdLib or raised during command execution
   ///  - [timeout] - time after which callback will be removed from [_eventCallbacks] map. By default 10 mins
-  Future<dynamic> sendCommand(TdFunction command,
+  Future<String> sendCommand(dynamic command,
       {TelegramEventCallback callback,
       TelegramErrorCallback onError,
       Duration timeout}) async {
     final requestID = _randomID();
     final responseTimeout = timeout ?? 10.minutes;
+    assert(command is TdFunction,
+        " command must be instance of TdFunction object");
 
     if (callback != null) {
       //registers callback  for future calling
@@ -395,13 +409,36 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
     try {
       log('Sending command [${command.getConstructor()}] to client [$_client]');
-      await TdClient.clientSend(
-          _client, command); //* Sending command to TdLib Plugin
-      return requestID;
+      await tdClient.send(command); //* Sending command to TdLib Plugin
+
     } catch (e) {
       TelegramErrorCallback _onError = onError ?? this.onError;
       errorCallback(e, _onError);
     }
+    return callback != null ? requestID : null;
+  }
+
+  Future<TdObject> sendCommandWithResult(
+    dynamic command, {
+    TelegramErrorCallback onError,
+    Duration timeout,
+  }) async {
+    final lock = AsyncLock();
+    TdObject result;
+    await sendCommand(
+      command,
+      callback: (obj, [reID]) {
+        result = obj;
+        lock.release();
+      },
+      onError: onError,
+      timeout: timeout,
+    );
+    await lock();
+    return result ??
+        TdError(
+            code: 400,
+            message: "timeout for [${command.getConstructor()}] passed.");
   }
 
   @override

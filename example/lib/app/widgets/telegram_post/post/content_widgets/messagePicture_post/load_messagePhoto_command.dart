@@ -1,8 +1,10 @@
 import 'dart:async';
 
-import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
-import 'package:telegram_service/td_api.dart' as tdapi;
-import 'package:telegram_service_example/utils/mvc/async_lock.dart';
+
+import 'package:id_mvc_app_framework/utils/async/async_lock.dart';
+import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
+import 'package:telegram_service/tdapi.dart' as tdapi;
+
 import 'package:telegram_service_example/utils/telegram/handlers/telegram_file_download_handler.dart';
 
 class LoadMessagePhotoCmd {
@@ -21,7 +23,7 @@ class LoadMessagePhotoCmd {
             asyncLock.release();
           }, onFileDownloading: (file) {});
 
-          return await asyncLock.lock;
+          return await asyncLock();
         },
         canBeDoneOnce: true,
       );

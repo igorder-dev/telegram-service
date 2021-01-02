@@ -2,10 +2,10 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:telegram_service/td_api.dart' as tdapi;
+import 'package:id_mvc_app_framework/utils/command/MvcCommandBuilder.dart';
+import 'package:telegram_service/tdapi.dart' as tdapi;
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/collapsable_content/collapsable_content.view.dart';
-import 'package:telegram_service_example/utils/mvc/MvcCommandBuilder.dart';
 import 'package:telegram_service_example/utils/telegram/posts_builders/post_content_widget.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 import 'package:visibility_detector/visibility_detector.dart';
@@ -88,13 +88,9 @@ class MessagePhotoPostContent
       );
 
   Widget get _getMessagePhoto {
-    print("screen size ${Get.width.floor()}");
     return Image(
-      image: ResizeImage(
-        c.messagePhotoFile,
-        width: Get.width.floor(),
-      ),
-      fit: BoxFit.fitWidth,
+      image: c.messagePhotoFile,
+      fit: BoxFit.none,
     );
   }
 
@@ -113,11 +109,10 @@ class MessagePhotoPostContent
             width: c.picWidth,
             height: c.picHeight,
             decoration: BoxDecoration(
-              color: Colors.red,
-              // image: DecorationImage(
-              //   image: c.minithumbnail,
-              //   fit: BoxFit.fitWidth,
-              // ),
+              image: DecorationImage(
+                image: c.minithumbnail,
+                fit: BoxFit.fitWidth,
+              ),
             ),
           ),
           Container(

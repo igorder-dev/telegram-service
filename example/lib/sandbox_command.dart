@@ -1,5 +1,5 @@
 import 'package:id_mvc_app_framework/framework.dart';
-import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
+import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
 
 var trigger = 1.obs;
 var trigger2 = 1.obs;

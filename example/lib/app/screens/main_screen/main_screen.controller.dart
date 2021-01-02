@@ -1,12 +1,8 @@
-import 'dart:async';
-
 import 'package:id_mvc_app_framework/framework.dart';
+import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
 import 'package:telegram_service_example/app/model/channel_info.dart';
 import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/screens/messages_screen.dart';
-import 'package:telegram_service_example/utils/mvc/MvcCommand.dart';
-
-import 'package:telegram_service_example/utils/telegram/handlers/telegram_chats_handler.dart';
 
 import 'load_channels_command.dart';
 

@@ -1,4 +1,5 @@
-import 'package:telegram_service/td_api.dart';
+import 'package:tdlib/td_api.dart';
+
 import '../telegram_event_handler.dart';
 import '../telegram_service.dart';
 

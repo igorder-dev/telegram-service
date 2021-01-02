@@ -267,7 +267,7 @@ packages:
       name: get
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "3.23.1"
+    version: "3.24.0"
   glob:
     dependency: transitive
     description:
@@ -322,7 +322,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a639d52ef131255038ed74838d961ba28a3ea982
+      resolved-ref: "5371e4fd276e8d19be77f822318e27c27505fccc"
       url: "https://github.com/igorder-dev/flutter-mvc-framework.git"
     source: git
     version: "0.0.1"
@@ -353,7 +353,7 @@ packages:
       name: js
       url: "https://pub.dartlang.org"
     source: hosted
-    version: "0.6.3-nullsafety.1"
+    version: "0.6.2"
   json_annotation:
     dependency: "direct main"
     description:
@@ -671,6 +671,13 @@ packages:
     dependency: transitive
     description:
       name: supercharged_dart
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "1.4.0"
+  tdlib:
+    dependency: transitive
+    description:
+      name: tdlib
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.4.0"

@@ -1,6 +1,6 @@
 import 'package:flutter/painting.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:telegram_service/td_api.dart';
+import 'package:telegram_service/tdapi.dart';
 import 'package:id_mvc_app_framework/framework.dart';
 import 'dart:io' as io;
 
@@ -75,12 +75,15 @@ class TelegramChannelInfo {
   Map<String, dynamic> toJson() => _$TelegramChannelInfoToJson(this);
 }
 
-class RxChatPhotoInfoSerializer implements JsonConverter<Rx<ChatPhotoInfo>, Map<String, dynamic>> {
+class RxChatPhotoInfoSerializer
+    implements JsonConverter<Rx<ChatPhotoInfo>, Map<String, dynamic>> {
   const RxChatPhotoInfoSerializer();
 
   @override
-  Rx<ChatPhotoInfo> fromJson(Map<String, dynamic> json) => Rx(ChatPhotoInfo.fromJson(json));
+  Rx<ChatPhotoInfo> fromJson(Map<String, dynamic> json) =>
+      Rx(ChatPhotoInfo.fromJson(json));
 
   @override
-  Map<String, dynamic> toJson(Rx<ChatPhotoInfo> chatPhotoInfo) => chatPhotoInfo.toJson();
+  Map<String, dynamic> toJson(Rx<ChatPhotoInfo> chatPhotoInfo) =>
+      chatPhotoInfo.toJson();
 }

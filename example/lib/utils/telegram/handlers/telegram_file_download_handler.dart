@@ -1,6 +1,7 @@
 import 'package:id_mvc_app_framework/framework.dart';
-import 'package:telegram_service/td_api.dart';
+
 import 'package:telegram_service/telegram_service.dart';
+import 'package:telegram_service/tdapi.dart';
 
 typedef void OnFileDownloadedCallback(File file, String path);
 typedef void OnFileDownloadingCallback(File file);

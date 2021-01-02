@@ -1,4 +1,4 @@
-import 'package:telegram_service/td_api.dart';
+import 'package:telegram_service/tdapi.dart';
 import 'package:time_formatter/time_formatter.dart';
 import 'package:json_annotation/json_annotation.dart';
 import 'channel_info.dart';
@@ -26,7 +26,8 @@ class TelegramChannelMessageInfo {
       : id = message.id,
         channelId = message.chatId,
         messageTimeStamp = message.date,
-        viewsCount = message.views,
+        //
+        viewsCount = 0,
         messageContentRx = message.content.obs;
 
   String get messageTimeFormatted {

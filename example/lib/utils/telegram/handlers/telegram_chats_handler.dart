@@ -1,7 +1,8 @@
 import 'package:id_mvc_app_framework/framework.dart';
 import 'package:id_mvc_app_framework/model.dart';
-import 'package:telegram_service/td_api.dart';
+
 import 'package:telegram_service/telegram_service.dart';
+import 'package:telegram_service/tdapi.dart';
 import 'package:telegram_service_example/app/model/channel_info.dart';
 import 'package:telegram_service_example/app/model/channel_info_store.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
@@ -35,25 +36,27 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
     }
   }
 
-  void _handleMessagesEvent(Messages messages) {
-    final messagesStore = TelegramChannelMessageInfoStore();
-    messages.messages.forEach((message) async {
+  final messagesStore = TelegramChannelMessageInfoStore();
+  void _handleMessagesEvent(Messages messages) async {
+    messagesStore.pureMap.addAll(_processMessages(messages));
+    messagesStore.refresh();
+  }
+
+  Map<int, TelegramChannelMessageInfo> _processMessages(Messages messages) {
+    final store = Map<int, TelegramChannelMessageInfo>();
+    messages.messages.forEach((message) {
       final messageInfo = TelegramChannelMessageInfo.fromMessage(message);
       if (TelegramPostContentBuilderService.hasBuilder(messageInfo) &&
           !messagesStore.containsKey(message.id)) {
-        messagesStore.pureMap[message.id] = messageInfo;
+        store[message.id] = messageInfo;
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - added]");
-
-        // serialization test
-        //  Get.log("JSON serialized message: ${TelegramChannelMessageInfo.fromMessage(message).toJson()}");
-
       } else {
         Get.log(
             "_handleMessagesEvent: [${message.chatId}] - [${message.id}] - [${message.content.getConstructor()} - excluded]");
       }
     });
-    messagesStore.refresh();
+    return store;
   }
 
   void _handleChatEvent(Chat chat) {
@@ -86,6 +89,18 @@ class TdlibChatsHandler extends TelegramEventHandler with GetxServiceMixin {
       limit: 30,
       fromMessageId: 0,
     ));
+  }
+
+  Future<void> getChatMessagesAsync(int chatId) async {
+    final messages =
+        await TelegramService.instance.sendCommandWithResult(GetChatHistory(
+      chatId: chatId,
+      offset: -10,
+      limit: 30,
+      fromMessageId: 0,
+    ));
+    if (!(messages is Messages)) return;
+    _handleMessagesEvent(messages);
   }
 
   void getAllChats() {

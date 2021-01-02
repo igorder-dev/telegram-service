@@ -6,7 +6,7 @@ import 'package:id_mvc_app_framework/model.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:async';
 
-import 'package:telegram_service/td_api.dart' show TdObject, TdlibParameters;
+import 'package:tdlib/td_api.dart' show TdObject, TdlibParameters;
 import 'package:telegram_service/telegram_service.dart';
 import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/messagePicture_post/messagePhoto_post.view.dart';
 import 'package:telegram_service_example/config/exceptions_config.dart';
@@ -37,6 +37,7 @@ void main() async {
   );
 
   TelegramService.start(
+    tdClient: FFITdClient(),
     eventHandlers: [
       Get.put<TdlibLoginHandler>(TdlibLoginHandler()),
       Get.put<TdlibChatsHandler>(TdlibChatsHandler()),
