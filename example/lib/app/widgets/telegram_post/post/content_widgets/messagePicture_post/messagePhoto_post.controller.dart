@@ -5,20 +5,18 @@ import 'package:id_mvc_app_framework/framework.dart';
 import 'package:id_mvc_app_framework/utils/command/MvcCommand.dart';
 import 'package:telegram_service_example/app/model/message_info.dart';
 import 'package:telegram_service/tdapi.dart' as tdapi;
+import 'package:telegram_service_example/app/widgets/telegram_post/post/content_widgets/messageMediaBase_post/messageMediaBase_post.controller.dart';
 import 'dart:convert';
 import 'dart:io' as io;
 
-import 'load_messagePhoto_command.dart';
+import 'load_messagePhoto.command.dart';
 
-class MessagePhotoPostContentController extends MvcController {
-  static const int IMAGE_READY_STATE = MvcController.NORMAL_STATE;
-  static const int IMAGE_LOADING_STATE = MvcController.LOADING_STATE;
-  static const int IMAGE_NOT_LOADED_STATE = -MvcController.LOADING_STATE;
-
-  MvcCommand loadCommand;
-
-  final TelegramChannelMessageInfo messsageInfo;
-  void Function() onContentTap;
+class MessagePhotoPostContentController extends MessageMediaBaseController {
+  MessagePhotoPostContentController(TelegramChannelMessageInfo messsageInfo)
+      : assert(messsageInfo.content is tdapi.MessagePhoto),
+        super(messsageInfo) {
+    selectPhotoSize();
+  }
 
   Uint8List thumbnailBytes;
   int _photoSizeIndex = -1;
@@ -31,17 +29,10 @@ class MessagePhotoPostContentController extends MvcController {
       : messageContent.photo.sizes[_photoSizeIndex];
 
   ImageProvider get messagePhotoFile => messagePhotoObject == null
-      ? minithumbnail
+      ? thumbnail
       : FileImage(
           io.File(messagePhotoObject.photo.local.path),
         );
-
-  MessagePhotoPostContentController(this.messsageInfo)
-      : assert(messsageInfo.content is tdapi.MessagePhoto),
-        super() {
-    onContentTap = loadMessagePhoto;
-    selectPhotoSize();
-  }
 
   void selectPhotoSize() {
     if (_photoSizeIndex != -1) return;
@@ -52,18 +43,24 @@ class MessagePhotoPostContentController extends MvcController {
       _photoSizeIndex = messageContent.photo.sizes.length - 1;
   }
 
+  @override
   String get postText => messageContent.caption.text;
 
-  double get aspectRatio => picWidth / picHeight;
+  @override
+  MvcCommand createCommand() => LoadMessagePhotoCmd.cmd(messagePhotoObject);
 
-  double get picWidth =>
-      messagePhotoObject?.width?.toDouble() ??
-      messageContent.photo.minithumbnail.width.toDouble();
-  double get picHeight =>
+  @override
+  double get mediaHeight =>
       messagePhotoObject?.height?.toDouble() ??
       messageContent.photo.minithumbnail.height.toDouble();
 
-  ImageProvider get minithumbnail {
+  @override
+  double get mediaWidth =>
+      messagePhotoObject?.width?.toDouble() ??
+      messageContent.photo.minithumbnail.width.toDouble();
+
+  @override
+  ImageProvider get thumbnail {
     if (thumbnailBytes == null) {
       final thumbnailData = messageContent.photo.minithumbnail.data;
       if (thumbnailData != null) thumbnailBytes = base64Decode(thumbnailData);
@@ -74,43 +71,10 @@ class MessagePhotoPostContentController extends MvcController {
       return MemoryImage(thumbnailBytes);
   }
 
-  void loadMessagePhoto() {
-    if (loadCommand.canExecute) {
-      Get.log('loadCommand for ${messsageInfo.id} started');
-      loadCommand.execute();
-    }
-  }
-
-  bool get isMessagePhotoDownloaded =>
+  @override
+  bool get isMediaDownloaded =>
       (messagePhotoObject?.photo?.local?.path?.isNotEmpty ?? false);
 
   @override
-  void onInit() {
-    super.onInit();
-
-    loadCommand = LoadMessagePhotoCmd.cmd(messagePhotoObject);
-/*       Worker _worker;
-    _worker = ever(loadCommand, (_) {
-      loadCommand.result.handleStatus(onCompleted: (_) {
-        _worker.dispose();
-        loadCommand.dispose();
-      });
-    }); */
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    if (isMessagePhotoDownloaded) {
-      loadCommand.complete();
-    } else {
-      //     loadMessagePhoto();
-    }
-  }
-
-  @override
-  void dispose() {
-    loadCommand.dispose();
-    super.dispose();
-  }
+  void onContentTap() {}
 }

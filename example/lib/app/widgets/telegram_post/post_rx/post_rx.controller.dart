@@ -21,6 +21,7 @@ class TelegramPostControllerRx extends MvcController {
 
   @override
   void onInit() {
+    //
     super.onInit();
     _worker = ever(messsageInfo.channel.photoInfoRx, (_) {
       if (messsageInfo.channel.isChannelPhotoDownloaded) _worker.dispose();

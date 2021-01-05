@@ -14,6 +14,7 @@ import 'package:telegram_service_example/routes/routes.dart';
 
 import 'app/widgets/telegram_post/post/content_widgets/messageText_post/messageText_post.view.dart';
 
+import 'app/widgets/telegram_post/post/content_widgets/messageVideo_post/messageVideo_post.view.dart';
 import 'app/widgets/telegram_post/post/content_widgets/unknown_post_type/unknown_post_type.view.dart';
 import 'utils/telegram/handlers/telegram_chats_handler.dart';
 import 'utils/telegram/handlers/telegram_file_download_handler.dart';
@@ -32,6 +33,7 @@ void main() async {
     [
       MessageTextPostContent.builder,
       MessagePhotoPostContent.builder,
+      MessageVideoPostContent.builder,
     ],
     defaultBuilder: UnknownPostContent.builder,
   );
