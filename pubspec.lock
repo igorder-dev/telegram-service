@@ -152,11 +152,9 @@ packages:
   id_mvc_app_framework:
     dependency: "direct main"
     description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "5371e4fd276e8d19be77f822318e27c27505fccc"
-      url: "https://github.com/igorder-dev/flutter-mvc-framework.git"
-    source: git
+      path: "../../id_mvc_app_framework"
+      relative: true
+    source: path
     version: "0.0.1"
   intl:
     dependency: transitive

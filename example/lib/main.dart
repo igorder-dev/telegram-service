@@ -73,6 +73,8 @@ void main() async {
       getPages: AppRoutes.routes,
     ),
   );
+
+  print("[Post-Run text]");
 }
 
 void teleServiceEvent(TdObject event, [requestID]) async {

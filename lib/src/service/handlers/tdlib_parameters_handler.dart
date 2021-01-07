@@ -31,6 +31,9 @@ class TdlibParametersHandler extends TelegramEventHandler {
           customCallback: (event, [requestID]) {
             TelegramService.log(
                 'SetTdlibParameters [$requestID] command received reply [${event.getConstructor()}]');
+            if (event is Ok) {
+              TelegramService.instance.clientConfigured = true;
+            }
           },
         );
         return;

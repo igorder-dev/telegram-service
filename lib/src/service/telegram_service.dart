@@ -172,6 +172,8 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
 
   /// internal TdLIb client ID
   int _client;
+  bool _clientCreated;
+  bool clientConfigured;
 
   /// Stream used to handle events from TdLib Library
   StreamController<TdObject> _eventController;
@@ -251,18 +253,21 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
   }
 
+  bool get isActivated =>
+      (_clientCreated ?? false) && (clientConfigured ?? false);
+
   /// Creates a new instance of TDLib plugin and subscrice to it's stream for listening events
   /// Returns [_client] pointer to the created instance of TDLib.
   /// Pointer 0 mean No client instance.
   Future<void> initClient() async {
     // check if client already initialized or was not created successfully last time
-    if (_client != null && _client != 0) {
+    if (_clientCreated ?? false) {
       return;
     }
 
     try {
-      var clientActivated = await tdClient.create();
-      if (!clientActivated)
+      _clientCreated = await tdClient.create();
+      if (!_clientCreated)
         throw TelegramServiceException(
             "Could not create telegram service instance");
 
