@@ -10,7 +10,7 @@ class FFITdClient extends TdClientInterface {
   JsonClient _client; // clinet instance which does inital FFI mapping
 
   /// default recieve comand time out
-  static const double RECIEVE_TIMEOUT = 20;
+  static const double RECIEVE_TIMEOUT = 10;
 
   /// maximum number of empty [recieve] event before cycle swithes to loose frequirency
   static const int NULLS_LIMITS = 100;

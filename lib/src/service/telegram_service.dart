@@ -113,6 +113,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     TelegramServiceLogoutCallback onLogOut,
   }) async {
     final _instance = instance;
+    final tdClient = _instance.tdClient;
     final newParams = parameters ?? _instance.parameters;
     final newEventHandlers = eventHandlers ?? _instance.eventHandlers;
     final verbosity = _instance.verbosityLevel;
@@ -121,6 +122,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     final newOnLogOut = onLogOut ?? _instance.onLogOut;
     await _instance.stop();
     await start(
+      tdClient: tdClient,
       parameters: newParams,
       eventHandlers: newEventHandlers,
       onError: newOnError,
@@ -196,6 +198,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   final TelegramEventCallback onEvent;
   final TelegramServiceLogoutCallback onLogOut;
   final List<TelegramEventHandler> eventHandlers;
+  final List<TelegramEventHandler> _eventHandlersFull = List();
   final Map<String, Stream<TdObject>> _eventHandlersStreams = Map();
   final Map<String, StreamController<TdObject>> _eventHandlersSControllers =
       Map();
@@ -227,13 +230,15 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     parameters.filesDirectory = appExtDir.path + '/tdlib';
     parameters.databaseDirectory = appDocDir.path;
 
+    _eventHandlersFull.addAll(eventHandlers);
+
     //  Registers internal event handlers. Check each class seperatelly
-    eventHandlers.add(TdlibParametersHandler(parameters, onError));
-    eventHandlers.add(EncryptionKeyHandler(ENCRYPTION_KEY));
-    eventHandlers.add(AuthorizationClosedHandler(onLogOut));
+    _eventHandlersFull.add(TdlibParametersHandler(parameters, onError));
+    _eventHandlersFull.add(EncryptionKeyHandler(ENCRYPTION_KEY));
+    _eventHandlersFull.add(AuthorizationClosedHandler(onLogOut));
 
     //Cycle to initiate Streams and register event handlers for patricular tdlib for [eventType]
-    for (var eventHandler in eventHandlers) {
+    for (var eventHandler in _eventHandlersFull) {
       //Go via all registered [TelegramEventHandler] instances
       final _eventsToHandle = eventHandler.eventsToHandle;
       for (var eventType in _eventsToHandle) {
@@ -365,6 +370,10 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   /// Stops TdLib pluging and closes and destroy all openned streams
   Future<void> stop() async {
     try {
+      sendCommandWithResult(Close());
+      destroyClient();
+      _clientCreated = false;
+      clientConfigured = false;
       _eventController.close();
       _eventReceiver.cancel();
       _eventHandlersSControllers.forEach((key, value) {
@@ -372,8 +381,9 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
       });
       _eventHandlersSControllers.clear();
       _eventHandlersStreams.clear();
+      _eventHandlersFull.clear();
       Get.delete<TelegramService>(force: true);
-      await destroyClient();
+
       log("Client [$_client] was stopped. All streams disposed.");
     } catch (e) {
       errorCallback(e, this.onError);
