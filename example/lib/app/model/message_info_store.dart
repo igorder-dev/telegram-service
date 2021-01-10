@@ -23,30 +23,30 @@ class TelegramChannelMessageInfoStore
   // Getting the sorted list of all messages by view count
   // the list can be adjusted by stat position and desired length
   List<TelegramChannelMessageInfo> sortMessagesByPopularity
-      (SortDirection direction, [int offset=0, int limit=0]){
+      (TelegramMessageSortDirection direction, [int offset=0, int limit=0]){
 
     if(values==null) return null;
     if(limit==0) limit = values.length-offset-1;
     List<TelegramChannelMessageInfo> messages = values.toList();
-    if(direction==SortDirection.asc)
-      messages.sort(compareByPopularityAsc);
+    if(direction==TelegramMessageSortDirection.asc)
+      messages.sort(compareMessagesByPopularityAsc);
     else
-      messages.sort(compareByPopularityDesc);
+      messages.sort(compareMessagesByPopularityDesc);
     return messages.sublist(offset, offset+limit);
   }
 
   // Getting the sorted list of all messages by date
   // the list can be adjusted by stat position and desired length
   List<TelegramChannelMessageInfo> sortMessagesByDate
-      (SortDirection direction, [int offset=0, int limit=0]){
+      (TelegramMessageSortDirection direction, [int offset=0, int limit=0]){
 
     if(values==null) return null;
     if(limit==0) limit = values.length-offset-1;
     List<TelegramChannelMessageInfo> messages = values.toList();
-    if(direction==SortDirection.asc)
-      messages.sort(compareByRecencyAsc);
+    if(direction==TelegramMessageSortDirection.asc)
+      messages.sort(compareMessagesByRecencyAsc);
     else
-      messages.sort(compareByRecencyDesc);
+      messages.sort(compareMessagesByRecencyDesc);
     return messages.sublist(offset, offset+limit);
   }
 
@@ -61,36 +61,36 @@ class TelegramChannelMessageInfoStore
   }
 
   // Comparator functions for sorting
-  int compareByPopularityAsc(TelegramChannelMessageInfo a,
+  int compareMessagesByPopularityAsc(TelegramChannelMessageInfo a,
       TelegramChannelMessageInfo b){
     if(a.viewsCount<b.viewsCount)
       return -1;
     else return 1;
   }
 
-  int compareByPopularityDesc(TelegramChannelMessageInfo a,
+  int compareMessagesByPopularityDesc(TelegramChannelMessageInfo a,
       TelegramChannelMessageInfo b){
     if(a.viewsCount<b.viewsCount)
       return 1;
     else return -1;
   }
 
-  int compareByRecencyAsc(TelegramChannelMessageInfo a,
+  int compareMessagesByRecencyAsc(TelegramChannelMessageInfo a,
       TelegramChannelMessageInfo b){
-    if(a.viewsCount<b.viewsCount)
+    if(a.messageTimeStamp<b.messageTimeStamp)
       return -1;
     else return 1;
   }
 
-  int compareByRecencyDesc(TelegramChannelMessageInfo a,
+  int compareMessagesByRecencyDesc(TelegramChannelMessageInfo a,
       TelegramChannelMessageInfo b){
-    if(a.viewsCount<b.viewsCount)
+    if(a.messageTimeStamp<b.messageTimeStamp)
       return 1;
     else return -1;
   }
 }
 
-enum SortDirection {
+enum TelegramMessageSortDirection {
   asc,
   desc
 }
