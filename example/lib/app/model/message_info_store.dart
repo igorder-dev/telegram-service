@@ -20,9 +20,32 @@ class TelegramChannelMessageInfoStore
               ?.toList()) ??
       List();
 
+
+  // Improved getMessagesByChannelId with sorting by recency, limit, offset
+  List<TelegramChannelMessageInfo> getMessagesByChannelIdX(int channelId,
+      [TelegramMessageSortDirection direction = TelegramMessageSortDirection.desc,
+        int offset=0, int limit=0]){
+
+    if(values==null) return null;
+    if(limit==0) limit = values.length-offset-1;
+    List<TelegramChannelMessageInfo> messages =
+    (channelId ==
+        null ? values.toList() :
+        values.where((message) => message.channelId == channelId).toList());
+    if(direction==TelegramMessageSortDirection.asc)
+      messages.sort(compareMessagesByRecencyAsc);
+    else
+      messages.sort(compareMessagesByRecencyDesc);
+    if(limit>messages.length)
+      return messages.sublist(offset);
+    else
+      return messages.sublist(offset, offset+limit);
+
+  }
+
   // Getting the sorted list of all messages by view count
   // the list can be adjusted by stat position and desired length
-  List<TelegramChannelMessageInfo> sortMessagesByPopularity
+  List<TelegramChannelMessageInfo> getAllMessagesSortedByPopularity
       (TelegramMessageSortDirection direction, [int offset=0, int limit=0]){
 
     if(values==null) return null;
@@ -37,7 +60,7 @@ class TelegramChannelMessageInfoStore
 
   // Getting the sorted list of all messages by date
   // the list can be adjusted by stat position and desired length
-  List<TelegramChannelMessageInfo> sortMessagesByDate
+  List<TelegramChannelMessageInfo> getAllMessagesSortedByDate
       (TelegramMessageSortDirection direction, [int offset=0, int limit=0]){
 
     if(values==null) return null;
