@@ -28,12 +28,17 @@ class TdlibParametersHandler extends TelegramEventHandler {
           ),
           onError: onError,
           withCallBack: true,
-          customCallback: (event, [requestID]) {
+          customCallback: (event, [requestID]) async {
             TelegramService.log(
                 'SetTdlibParameters [$requestID] command received reply [${event.getConstructor()}]');
             if (event is Ok) {
               TelegramService.instance.clientConfigured = true;
             } else {
+              if (event is TdError &&
+                  event.code == 400 &&
+                  event.message.contains("td.binlog")) {
+                await TelegramService.instance.tdClient.destroyPrevInstance();
+              }
               TelegramService.restart();
             }
           },

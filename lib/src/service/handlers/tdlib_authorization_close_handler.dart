@@ -19,7 +19,7 @@ class AuthorizationClosedHandler extends TelegramEventHandler {
   void onTelegramEvent(TdObject event, [String requestID]) {
     final _authState = event as UpdateAuthorizationState;
     switch (_authState.authorizationState.getConstructor()) {
-      case AuthorizationStateClosed.CONSTRUCTOR:
+      case AuthorizationStateLoggingOut.CONSTRUCTOR:
         if (onLogOut == null)
           TelegramService.restart();
         else

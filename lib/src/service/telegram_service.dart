@@ -146,6 +146,17 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
     }
   }
 
+  static bool get isCreated {
+    return Get.isRegistered<TelegramService>();
+  }
+
+  static bool get isActive {
+    if (isCreated) {
+      return instance.isActivated;
+    } else
+      return false;
+  }
+
   /// Passes [error] object to [errorCallback]. If [errorCallback] is Null then throws [error] as exception
   void errorCallback(error, TelegramErrorCallback errorCallback) {
     if (errorCallback != null)
@@ -370,7 +381,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
   /// Stops TdLib pluging and closes and destroy all openned streams
   Future<void> stop() async {
     try {
-      sendCommandWithResult(Close());
+      //  sendCommandWithResult(Close());
       destroyClient();
       _clientCreated = false;
       clientConfigured = false;

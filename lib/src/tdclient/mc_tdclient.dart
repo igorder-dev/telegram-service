@@ -42,4 +42,7 @@ class MCTdClient extends TdClientInterface {
   @override
   Future<void> send(TdFunction command) async =>
       await TdClient.clientSend(_clientId, command);
+
+  @override
+  Future<void> destroyPrevInstance() {}
 }

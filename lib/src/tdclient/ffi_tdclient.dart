@@ -31,13 +31,13 @@ class FFITdClient extends TdClientInterface {
 
   @override
   Future<bool> create() async {
-    _client = JsonClient.create("");
+    _client = await JsonClient.create("");
     return isActive;
   }
 
   @override
   Future<void> destroy() async {
-    _client.destroy();
+    await _client.destroy();
   }
 
   @override
@@ -90,4 +90,9 @@ class FFITdClient extends TdClientInterface {
         _resetReciveInterval();
         _client.send(command.toJson());
       });
+
+  @override
+  Future<void> destroyPrevInstance() async {
+    await _client.destroySaved();
+  }
 }

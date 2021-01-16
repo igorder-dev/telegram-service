@@ -14,6 +14,8 @@ import 'dart:io' show Platform;
 import "package:ffi/ffi.dart";
 import "package:path/path.dart" as path;
 
+import 'package:shared_preferences/shared_preferences.dart';
+
 /// Creates a new instance of TDLib client.
 ///
 /// void *td_json_client_create(void);
@@ -49,7 +51,9 @@ typedef void JsonClientDestroy(Pointer<Void> client);
 
 /// Represents a Telegram client that sends and receives JSON data.
 class JsonClient {
+  static const String CLIENT_POINTER = "ffi_client";
   Pointer<Void> _client;
+  Pointer<Void> _savedClient;
 
   // If the client is inactive (if [destroy] has been called), further calls
   // to this class' methods will fail
@@ -63,7 +67,16 @@ class JsonClient {
   JsonClientExecute _jsonClientExecute;
   JsonClientDestroy _jsonClientDestroy;
 
-  JsonClient.create(String dlDir) {
+  SharedPreferences _prefs;
+
+  static Future<JsonClient> create(String dlDir) async {
+    JsonClient ffiClient = JsonClient._create(dlDir);
+
+    await ffiClient._initialize();
+    return ffiClient;
+  }
+
+  JsonClient._create(String dlDir) {
     // Get the path to the td_json_client dynamic library
     final dlPath = platformPath(dlDir);
 
@@ -85,10 +98,24 @@ class JsonClient {
     _jsonClientExecute =
         dylib.lookupFunction<td_json_client_execute, JsonClientExecute>(
             "_td_json_client_execute");
+  }
 
+  Future<void> _initialize() async {
+    _prefs = await SharedPreferences.getInstance();
+    int address = _prefs.getInt(CLIENT_POINTER) ?? 0;
+    if (address != 0) {
+      _savedClient = Pointer<Void>.fromAddress(address);
+    }
+    await _loadOrCreateClient();
+  }
+
+  Future<void> _loadOrCreateClient() async {
     _client = _jsonClientCreate();
+    await _prefs.setInt(CLIENT_POINTER, _client.address);
     active = true;
   }
+
+  void saveClientProperty() async {}
 
   /// If the client is not [active] then this throws an [Exception].
   void _assertActive() {
@@ -132,10 +159,15 @@ class JsonClient {
   }
 
   /// Destroy the client
-  void destroy() {
+  Future<void> destroy() async {
     _assertActive();
     _jsonClientDestroy(_client);
+    await _prefs.setInt(CLIENT_POINTER, 0);
     active = false;
+  }
+
+  Future<void> destroySaved() async {
+    _jsonClientDestroy(_savedClient);
   }
 }
 
