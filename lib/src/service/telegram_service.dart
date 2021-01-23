@@ -129,6 +129,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
       onEvent: newOnEvent,
       onLogOut: newOnLogOut,
       verbosityLevel: verbosity,
+      logEnabled: _logEnabled,
     );
   }
 
@@ -417,7 +418,7 @@ class TelegramService with ModelStateProvider, GetxServiceMixin {
       TelegramErrorCallback onError,
       Duration timeout}) async {
     final requestID = _randomID();
-    final responseTimeout = timeout ?? 10.minutes;
+    final responseTimeout = timeout ?? 30.seconds;
     assert(command is TdFunction,
         " command must be instance of TdFunction object");
 

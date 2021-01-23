@@ -12,23 +12,6 @@ class FFITdClient extends TdClientInterface {
   /// default recieve comand time out
   static const double RECIEVE_TIMEOUT = 10;
 
-  /// maximum number of empty [recieve] event before cycle swithes to loose frequirency
-  static const int NULLS_LIMITS = 100;
-
-  /// Frequency in milliseconds when events loop is in frequent call mode
-  static const double FREQ_RECIVIE_INTERVAL = 1;
-
-  /// Frequency in millescands when event loop is in loose call mode
-  static const double LOOSE_RECIVIE_INTERVAL = 5000;
-
-  double _recieveInterval = FREQ_RECIVIE_INTERVAL;
-  int _nullCounter = 0;
-
-  void _resetReciveInterval() {
-    _recieveInterval = FREQ_RECIVIE_INTERVAL;
-    _nullCounter = 0;
-  }
-
   @override
   Future<bool> create() async {
     _client = await JsonClient.create("");
@@ -43,37 +26,18 @@ class FFITdClient extends TdClientInterface {
   @override
   Stream<TdObject> get eventsStream async* {
     while (isActive) {
-      //calling recieve function in Future with defined delay -> made to avoid blocking UI isolate events loop
-      var obj = await Future.delayed(
-        _recieveInterval.milliseconds,
-        () async => await recieve(0.0),
-      );
-      // print(obj);
-      // if recieve returns nothing skip event processing an update empy results counters
-      if (obj == null) {
-        _nullCounter++;
-        //If counter exceeds number of repetative empty inputs switch events loop to loos frequence
-        _recieveInterval = _nullCounter > NULLS_LIMITS
-            ? LOOSE_RECIVIE_INTERVAL
-            : FREQ_RECIVIE_INTERVAL;
-      } else {
-        //if actual object recieved reset empty results counter and event loop interval + send object to the stream
-        _resetReciveInterval();
-        yield obj;
-      }
+      var obj = await recieve(0.0);
+      if (obj != null) yield obj;
     }
   }
 
   @override
-  Future<TdObject> execute(TdFunction command) async =>
-      await Future.delayed(1.milliseconds, () {
-        _resetReciveInterval();
+  Future<TdObject> execute(TdFunction command) async => await Get.asap(() {
         return convertToObject(_client.execute(command.toJson()));
       });
 
   @override
   TdObject executeSync(TdFunction command) {
-    _resetReciveInterval();
     return convertToObject(_client.execute(command.toJson()));
   }
 
@@ -82,14 +46,11 @@ class FFITdClient extends TdClientInterface {
 
   @override
   Future<TdObject> recieve([double timeout = RECIEVE_TIMEOUT]) async =>
-      convertToObject(_client.receive(timeout));
+      Get.asap(() => convertToObject(_client.receive(timeout)));
 
   @override
   Future<void> send(TdFunction command) async =>
-      await Future.delayed(1.milliseconds, () {
-        _resetReciveInterval();
-        _client.send(command.toJson());
-      });
+      await Get.asap(() => _client.send(command.toJson()));
 
   @override
   Future<void> destroyPrevInstance() async {

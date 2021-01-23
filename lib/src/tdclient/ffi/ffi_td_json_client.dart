@@ -111,6 +111,7 @@ class JsonClient {
 
   Future<void> _loadOrCreateClient() async {
     _client = _jsonClientCreate();
+
     await _prefs.setInt(CLIENT_POINTER, _client.address);
     active = true;
   }
@@ -135,11 +136,10 @@ class JsonClient {
 
   /// Receive the API's response
   String receive([double timeout = 2.0]) {
-    _assertActive();
+    if (!active) return null;
     final response = _jsonClientReceive(_client, timeout);
     if (response.address != 0) {
       final resString = Utf8.fromUtf8(response);
-
       return resString;
     } else {
       return null;
@@ -151,7 +151,7 @@ class JsonClient {
   /// error along the lines of "Function can't be executed synchronously"), use
   /// [send] instead.
   String execute(Map<String, dynamic> request) {
-    _assertActive();
+    if (!active) return null;
     final result =
         _jsonClientExecute(_client, Utf8.toUtf8(json.encode(request)));
     var resJson = Utf8.fromUtf8(result);
@@ -161,6 +161,7 @@ class JsonClient {
   /// Destroy the client
   Future<void> destroy() async {
     _assertActive();
+    active = false;
     _jsonClientDestroy(_client);
     await _prefs.setInt(CLIENT_POINTER, 0);
     active = false;
